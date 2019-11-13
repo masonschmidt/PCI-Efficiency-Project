@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>
+    </title>
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+      var getQueryString = function ( field, url ) {
+         var href = url ? url : window.location.href;
+         var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
+         var string = reg.exec(href);
+         return string ? string[1] : null;
+      };
+      var string = getQueryString('id', window.location.href);
+
+      var url = 'http://127.0.0.1:5000/events';
+
+      var source = new EventSource(url);
+
+      source.addEventListener('message', function(e) {
+        document.body.innerHTML = e.data;
+      }, false);
+
+    </script>
+  </body>
+</html>
