@@ -12,6 +12,9 @@ def doyouhavethetime():
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "time: {} \nvalue: {}\n".format(current_time, value)
+            yield "time: {}\nvalue: {}\n".format(current_time, value)
             time.sleep(5)
     return Response(generate(), mimetype='text/plain')
+
+if __name__ == '__main__':
+    app.run()
