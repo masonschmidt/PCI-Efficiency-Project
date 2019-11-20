@@ -2,18 +2,32 @@ import time
 import random
 from random import randrange
 from datetime import datetime
-from flask import Flask, Response
+from flask import Flask, Response, g
 
 app = Flask(__name__)
 
-@app.route('/')
-def doyouhavethetime():
+number = 5
+
+@app.route('/generator/<id>/fuelConsumed')
+def getFuelConsumed(id):
     def generate():
+        value = randrange(100)
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "time: {}\nvalue: {}\n".format(current_time, value)
+            yield "generator: {}\ntime: {}\nfuelConsumed: {}\nnumber: {}\n".format(id, current_time, value, number)
             time.sleep(5)
+    return Response(generate(), mimetype='text/plain')
+
+@app.route('/generator/<id>/powerProduced')
+def getPowerProduced(id):
+    def generate():
+        value = randrange(100)
+        while True:
+            current_time = "{}".format(datetime.now().isoformat())
+            value = randrange(100)
+            yield "generator: {}\ntime: {}\npowerProduced: {}\n".format(id, current_time, value)
+            time.sleep(10)
     return Response(generate(), mimetype='text/plain')
 
 if __name__ == '__main__':
