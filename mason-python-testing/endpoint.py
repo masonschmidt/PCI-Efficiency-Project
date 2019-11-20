@@ -55,11 +55,9 @@ def getPowerProduced(id):
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, , conn.get('generator{}power'.format(id)))
+            yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
             time.sleep(10)
     return Response(generate(), mimetype='text/plain')
-
-
 
 
 if __name__ == '__main__':
