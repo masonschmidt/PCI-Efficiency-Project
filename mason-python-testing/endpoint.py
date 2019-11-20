@@ -6,8 +6,6 @@ from flask import Flask, Response, g
 
 app = Flask(__name__)
 
-number = 5
-
 @app.route('/generator/<id>/fuelConsumed')
 def getFuelConsumed(id):
     def generate():
@@ -15,7 +13,7 @@ def getFuelConsumed(id):
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "generator: {}\ntime: {}\nfuelConsumed: {}\nnumber: {}\n".format(id, current_time, value, number)
+            yield "generator: {}\ntime: {}\nfuelConsumed: {}\n".format(id, current_time, value)
             time.sleep(5)
     return Response(generate(), mimetype='text/plain')
 
