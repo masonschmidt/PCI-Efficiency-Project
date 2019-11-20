@@ -9,6 +9,8 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from pytz import utc
 import redis
 
+number_of_generators = 10
+
 app = Flask(__name__)
 
 jobstores = {
@@ -31,7 +33,7 @@ conn = redis.Redis()
 scheduler.start()
 
 def putGeneratorValues():
-    for i in range(1,10):
+    for i in range(1,number_of_generators):
         conn.set('generator{}fuel'.format(i), randrange(100))
         conn.set('generator{}power'.format(i), randrange(100))
 
@@ -56,7 +58,7 @@ def getPowerProduced(id):
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
             yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
-            time.sleep(10)
+            time.sleep(5)
     return Response(generate(), mimetype='text/plain')
 
 
