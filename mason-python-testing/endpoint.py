@@ -9,7 +9,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from pytz import utc
 import redis
 
-number_of_generators = 10
+number_of_generators = 3000
 
 app = Flask(__name__)
 
