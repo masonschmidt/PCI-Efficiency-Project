@@ -11,7 +11,9 @@ import redis
 import json
 
 #constant to specify how many generators to start with the server
-number_of_generators = 10
+number_of_generators = 100
+number_of_generators = number_of_generators + 1
+#constant to specify how long between data updates
 delay = 5
 
 #basically creates the flask server
@@ -57,9 +59,9 @@ job = scheduler.add_job(putGeneratorValues, 'interval', seconds=delay)
 #function begins yielding generator values every 5 seconds for fuel consumed
 @app.route('/generator/<id>/fuelConsumed')
 def getFuelConsumed(id):
+    pubsub = conn.pubsub()
+    pubsub.subscribe(['generator{}fuel'.format(id)])
     def generate():
-        pubsub = conn.pubsub()
-        pubsub.subscribe(['generator{}fuel'.format(id)])
         while True:
             for item in pubsub.listen():
                 if item['data'] != 1:
@@ -74,9 +76,9 @@ def getFuelConsumed(id):
 #function begins yielding generator values every 5 seconds for power produced
 @app.route('/generator/<id>/powerProduced')
 def getPowerProduced(id):
+    pubsub = conn.pubsub()
+    pubsub.subscribe(['generator{}power'.format(id)])
     def generate():
-        pubsub = conn.pubsub()
-        pubsub.subscribe(['generator{}power'.format(id)])
         while True:
             for item in pubsub.listen():
                 if item['data'] != 1:
@@ -86,6 +88,7 @@ def getPowerProduced(id):
                     'time': current_time,
                     'powerProduced': item['data'].decode('utf-8')})
     return Response(generate(), mimetype='text/plain')
+
 
 #this is here if you want to run the script instead of running through flask
 if __name__ == '__main__':
