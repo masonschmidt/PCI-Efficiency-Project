@@ -2,7 +2,7 @@ import time
 import random
 from random import randrange
 from datetime import datetime
-from flask import Flask, Response, g
+from flask import Flask, Response, stream_with_context
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -62,14 +62,17 @@ def getFuelConsumed(id):
     pubsub = conn.pubsub()
     pubsub.subscribe(['generator{}fuel'.format(id)])
     def generate():
-        while True:
-            for item in pubsub.listen():
-                if item['data'] != 1:
-                    current_time = "{}".format(datetime.now().isoformat())
-                    yield json.dumps({
-                    'generator': id,
-                    'time': current_time,
-                    'fuelConsumed': item['data'].decode('utf-8')})
+        try:
+            while True:
+                for item in pubsub.listen():
+                    if item['data'] != 1:
+                        current_time = "{}".format(datetime.now().isoformat())
+                        yield json.dumps({
+                        'generator': id,
+                        'time': current_time,
+                        'fuelConsumed': item['data'].decode('utf-8')})
+        except GeneratorExit:
+            pubsub.close()
     return Response(generate(), mimetype='text/plain')
 
 # when the user inputs the path .../generator/someidvalue/powerProduced this
@@ -79,14 +82,17 @@ def getPowerProduced(id):
     pubsub = conn.pubsub()
     pubsub.subscribe(['generator{}power'.format(id)])
     def generate():
-        while True:
-            for item in pubsub.listen():
-                if item['data'] != 1:
-                    current_time = "{}".format(datetime.now().isoformat())
-                    yield json.dumps({
-                    'generator': id,
-                    'time': current_time,
-                    'powerProduced': item['data'].decode('utf-8')})
+        try:
+            while True:
+                for item in pubsub.listen():
+                    if item['data'] != 1:
+                        current_time = "{}".format(datetime.now().isoformat())
+                        yield json.dumps({
+                        'generator': id,
+                        'time': current_time,
+                        'powerProduced': item['data'].decode('utf-8')})
+        except GeneratorExit:
+            pubsub.close()
     return Response(generate(), mimetype='text/plain')
 
 

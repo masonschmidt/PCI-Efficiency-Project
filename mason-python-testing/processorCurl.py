@@ -27,4 +27,6 @@ for gen_num in range(1, num_gens):
     m.add_handle(conn_power)
 
 while 1:
-    m.perform()
+    ret, num_handles = m.perform()
+    if ret != pycurl.E_CALL_MULTI_PERFORM:
+        break
