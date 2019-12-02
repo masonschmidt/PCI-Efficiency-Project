@@ -12,7 +12,7 @@ import json
 
 #constant to specify how many generators to start with the server
 number_of_generators = 10
-delay = 1
+delay = 5
 
 #basically creates the flask server
 app = Flask(__name__)
@@ -45,12 +45,10 @@ scheduler.start()
 #the function the scheduler runs to update the values for each generator
 def putGeneratorValues():
     for i in range(1,number_of_generators):
-        conn.set('generator{}fuel'.format(i),
+        conn.publish('generator{}fuel'.format(i),
         '{}'.format(randrange(100)).encode('utf-8'))
-        conn.set('generator{}power'.format(i),
+        conn.publish('generator{}power'.format(i),
         '{}'.format(randrange(100)).encode('utf-8'))
-        conn.publish('generator{}fuel'.format(i).encode('utf-8'), randrange(100))
-        conn.publish('generator{}power'.format(i).encode('utf-8'), randrange(100))
 
 #adds the function putGeneratosValue to the scheduler to run every 5 seconds
 job = scheduler.add_job(putGeneratorValues, 'interval', seconds=delay)
@@ -60,20 +58,16 @@ job = scheduler.add_job(putGeneratorValues, 'interval', seconds=delay)
 @app.route('/generator/<id>/fuelConsumed')
 def getFuelConsumed(id):
     def generate():
-        value = randrange(100)
         pubsub = conn.pubsub()
         pubsub.subscribe(['generator{}fuel'.format(id)])
         while True:
             for item in pubsub.listen():
-                print(item)
-            current_time = "{}".format(datetime.now().isoformat())
-            value = randrange(100)
-            yield json.dumps({'generator': id,
-            'time': current_time,
-            'fuelConsumed': value,
-            'testValue': conn.get('generator{}fuel'.format(id).encode('utf-8')).decode('utf-8')})
-            #yield "{ \"generator\":{}}\n{\"time\":{}}\n{\"fuelConsumed\":{}}\n{\"test\":{}}\n".format(id, current_time, value, conn.get('generator{}fuel'.format(id)))
-            time.sleep(delay)
+                if item['data'] != 1:
+                    current_time = "{}".format(datetime.now().isoformat())
+                    yield json.dumps({
+                    'generator': id,
+                    'time': current_time,
+                    'fuelConsumed': item['data'].decode('utf-8')})
     return Response(generate(), mimetype='text/plain')
 
 # when the user inputs the path .../generator/someidvalue/powerProduced this
@@ -81,16 +75,16 @@ def getFuelConsumed(id):
 @app.route('/generator/<id>/powerProduced')
 def getPowerProduced(id):
     def generate():
-        value = randrange(100)
+        pubsub = conn.pubsub()
+        pubsub.subscribe(['generator{}power'.format(id)])
         while True:
-            current_time = "{}".format(datetime.now().isoformat())
-            value = randrange(100)
-            yield json.dumps({'generator': id,
-            'time': current_time,
-            'powerProduced': value,
-            'testValue': conn.get('generator{}power'.format(id)).decode('utf-8')})
-            #yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
-            time.sleep(delay)
+            for item in pubsub.listen():
+                if item['data'] != 1:
+                    current_time = "{}".format(datetime.now().isoformat())
+                    yield json.dumps({
+                    'generator': id,
+                    'time': current_time,
+                    'powerProduced': item['data'].decode('utf-8')})
     return Response(generate(), mimetype='text/plain')
 
 #this is here if you want to run the script instead of running through flask
