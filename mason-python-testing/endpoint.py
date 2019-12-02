@@ -12,6 +12,7 @@ import json
 
 #constant to specify how many generators to start with the server
 number_of_generators = 10
+delay = 1
 
 #basically creates the flask server
 app = Flask(__name__)
@@ -48,9 +49,11 @@ def putGeneratorValues():
         '{}'.format(randrange(100)).encode('utf-8'))
         conn.set('generator{}power'.format(i),
         '{}'.format(randrange(100)).encode('utf-8'))
+        conn.publish('generator{}fuel'.format(i).encode('utf-8'), randrange(100))
+        conn.publish('generator{}power'.format(i).encode('utf-8'), randrange(100))
 
 #adds the function putGeneratosValue to the scheduler to run every 5 seconds
-job = scheduler.add_job(putGeneratorValues, 'interval', seconds=5)
+job = scheduler.add_job(putGeneratorValues, 'interval', seconds=delay)
 
 # when the user inputs the path .../generator/someidvalue/fuelConsumed this
 #function begins yielding generator values every 5 seconds for fuel consumed
@@ -58,15 +61,19 @@ job = scheduler.add_job(putGeneratorValues, 'interval', seconds=5)
 def getFuelConsumed(id):
     def generate():
         value = randrange(100)
+        pubsub = conn.pubsub()
+        pubsub.subscribe(['generator{}fuel'.format(id)])
         while True:
+            for item in pubsub.listen():
+                print(item)
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
             yield json.dumps({'generator': id,
             'time': current_time,
             'fuelConsumed': value,
-            'testValue': conn.get('generator{}fuel'.format(id)).decode('utf-8')})
+            'testValue': conn.get('generator{}fuel'.format(id).encode('utf-8')).decode('utf-8')})
             #yield "{ \"generator\":{}}\n{\"time\":{}}\n{\"fuelConsumed\":{}}\n{\"test\":{}}\n".format(id, current_time, value, conn.get('generator{}fuel'.format(id)))
-            time.sleep(5)
+            time.sleep(delay)
     return Response(generate(), mimetype='text/plain')
 
 # when the user inputs the path .../generator/someidvalue/powerProduced this
@@ -83,7 +90,7 @@ def getPowerProduced(id):
             'powerProduced': value,
             'testValue': conn.get('generator{}power'.format(id)).decode('utf-8')})
             #yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
-            time.sleep(5)
+            time.sleep(delay)
     return Response(generate(), mimetype='text/plain')
 
 #this is here if you want to run the script instead of running through flask
