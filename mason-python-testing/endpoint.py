@@ -8,6 +8,7 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
 from pytz import utc
 import redis
+import json
 
 #constant to specify how many generators to start with the server
 number_of_generators = 10
@@ -43,10 +44,10 @@ scheduler.start()
 #the function the scheduler runs to update the values for each generator
 def putGeneratorValues():
     for i in range(1,number_of_generators):
-        conn.set('generator{}fuel'.format(i), '{}'.format(randrange(100)))
-        conn.set('testValue', "hello")
-        print(conn.get('testValue'))
-        conn.set('generator{}power'.format(i), '{}'.format(randrange(100)))
+        conn.set('generator{}fuel'.format(i),
+        '{}'.format(randrange(100)).encode('utf-8'))
+        conn.set('generator{}power'.format(i),
+        '{}'.format(randrange(100)).encode('utf-8'))
 
 #adds the function putGeneratosValue to the scheduler to run every 5 seconds
 job = scheduler.add_job(putGeneratorValues, 'interval', seconds=5)
@@ -60,7 +61,11 @@ def getFuelConsumed(id):
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "generator: {}\ntime: {}\nfuelConsumed: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}fuel'.format(id)))
+            yield json.dumps({'generator': id,
+            'time': current_time,
+            'fuelConsumed': value,
+            'testValue': conn.get('generator{}fuel'.format(id)).decode('utf-8')})
+            #yield "{ \"generator\":{}}\n{\"time\":{}}\n{\"fuelConsumed\":{}}\n{\"test\":{}}\n".format(id, current_time, value, conn.get('generator{}fuel'.format(id)))
             time.sleep(5)
     return Response(generate(), mimetype='text/plain')
 
@@ -73,7 +78,11 @@ def getPowerProduced(id):
         while True:
             current_time = "{}".format(datetime.now().isoformat())
             value = randrange(100)
-            yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
+            yield json.dumps({'generator': id,
+            'time': current_time,
+            'powerProduced': value,
+            'testValue': conn.get('generator{}power'.format(id)).decode('utf-8')})
+            #yield "generator: {}\ntime: {}\npowerProduced: {}\ntest: {}\n".format(id, current_time, value, conn.get('generator{}power'.format(id)))
             time.sleep(5)
     return Response(generate(), mimetype='text/plain')
 
