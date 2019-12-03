@@ -120,20 +120,6 @@ function sendResponse(res, data, streaming) {
 /////////////////////////////////////////////////////////////////////////////////
 // Data Setters
 /////////////////////////////////////////////////////////////////////////////////
-function setServerInformation(req, res){
-  data = {}
-  data.url = 'Server Information'
-  data.queryRequest = req.query
-  return data
-}
-
-function setGeneratorInformation(req, res){
-  data = {}
-  data.url = 'Generator Infomation'
-  data.queryRequest = req.query
-  return data
-}
-
 function setFuelInformation(req, res, num){
   data = {}
 
@@ -188,22 +174,9 @@ function setPowerInformation(req, res, num){
   return;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////
 // Server Routes
 /////////////////////////////////////////////////////////////////////////////////
-app.get('/', function (req, res) {
-  setHead(res, false);
-  data = setServerInformation(req, res);
-  sendResponse(res, data, false);
-})
-
-app.get('/generator', function (req, res) {
-  setHead(res, false);
-  data = setGeneratorInformation(req, res);
-  sendResponse(res, data, false);
-})
-
 app.get('/generator/:generatorID', function (req, res) {
   setHead(res, true);
   let num = parseInt(req.params["generatorID"], 10)
@@ -240,3 +213,32 @@ app.get('/generator/:generatorID/powerProduced', function (req, res) {
 /////////////////////////////////////////////////////////////////////////////////
 app.listen(port, () =>
   console.log(`Example app listening on port ${port}!`));
+
+/////////////////////////////////////////////////////////////////////////////////
+// Testing Paths and Functions
+/////////////////////////////////////////////////////////////////////////////////
+function setServerInformation(req, res){
+  data = {}
+  data.url = 'Server Information'
+  data.queryRequest = req.query
+  return data
+}
+
+function setGeneratorInformation(req, res){
+  data = {}
+  data.url = 'Generator Infomation'
+  data.queryRequest = req.query
+  return data
+}
+
+app.get('/', function (req, res) {
+  setHead(res, false);
+  data = setServerInformation(req, res);
+  sendResponse(res, data, false);
+})
+
+app.get('/generator', function (req, res) {
+  setHead(res, false);
+  data = setGeneratorInformation(req, res);
+  sendResponse(res, data, false);
+})
