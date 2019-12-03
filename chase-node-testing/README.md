@@ -1,28 +1,62 @@
-# NodeJS Server Documentation
+# Node Server Dependencies  
+## Express  
+Widely Used Webserver Framework  
+Easy to Read Program Code  
+Allows for Easy Callbacks  
+Easily Deals with Paths  
+## Connect-Timeout  
+Allows for Request to Timeout and Server Handles The Connection Pop
+## Seed Random
+Math.Random does not have a set Random Seed, so to alleviate this issue, Seed Random is imported into the program.
+## Events  
+Allows for Emitters on each random number in the rng array. Listeners can be connected to the Emitters.
+# Program Constraints
+## Input Time  
+Time until the new Fuel Consumed Value is produced.
+## Output Time  
+Time until the new Power Produced Value is Produced.
+## Server Size
+Size of the Server in terms of array memory
+## Status Time
+Time before the server program shows its connection status
+## RNG Array
+An array of random numbers that allows for synchronous results.
+## Input Emitters
+An array of Emitters that are in parallel with the rng array.
+## Output Emitters
+An array of Emitters that are in parallel with the rng array.
+## Connections
+An array of low memory values that show true or false for a connection to show server details.
+# Server Dependencies and Memory  
+## Scaling Server Memory Globally
+The RNG array is connected to the emitters in such a way that we can imagine the input emitters are connected to the first N RNG elements and the output emitters are connected to the last N rng elements. The connection array shall span the whole of the RNG array.
+# Server Status Log  
+A Log to the console which can be wrote and appended to a log file at a certain amount of time
+# Helper Functions  
+## Set Outbound Emitter
+### Parameter: Generator Number
 
-## Dependencies
-#### Download NodeJS
-Go to https://nodejs.org/en/download/ and download the latest NodeJS LTS Version.  
+## Set Inbound Emitter
+### Parameter: Generator Number
 
-#### Install Dependencies
-``` npm install express --save ```  
-``` npm install helmet --save ```
+## Close Connection
+### Parameter: Request, Response, Generator Number
 
-## Run Program
-Clone into the PCI-EFFICIENCY-PROJECT or Pull latest code from Github. Change Directories to PCI-EFFICIENCY-PROJECT/chase-node-testing/ and type:
-``` node server.js ```
+## Set Head
+### Parameter: Response, Streaming Boolean
 
-## Runtime Abilities
-The Server is runing on ``` http://127.0.0.1:3000/ ```
+## Send Response
+### Parameter: Response, Data, Streaming Boolean
 
-| Relative Paths | Query String | Output1   | Output2 | Dynamic            | Browser            | cURL               |
-|----------------|--------------|-----------|---------|--------------------|--------------------|--------------------|
-| /              | -            | Hello     | GoodBye | :heavy_check_mark: | :heavy_check_mark: |                    |
-| /              | ?id=time     | hr : m : s|    -    | :heavy_check_mark: | :heavy_check_mark: |                    |
-| /              | ?id=random   | number    |    -    | :heavy_check_mark: | :heavy_check_mark: |                    |
-| /testing       | -            | Hello     | GoodBye |                    | :heavy_check_mark: |                    |
-| /testing       | ?id=time     | hr : m : s|    -    |                    | :heavy_check_mark: |                    |
-| /testing       | ?id=random   | number    |    -    |                    | :heavy_check_mark: |                    |
-| /ender         | -            | Hello     | GoodBye | :heavy_check_mark: |                    | :heavy_check_mark: |
-| /ender         | ?id=time     | hr : m : s|    -    | :heavy_check_mark: |                    | :heavy_check_mark: |
-| /ender         | ?id=random   | number    |    -    | :heavy_check_mark: |                    | :heavy_check_mark: |
+# Data Setters  
+## Set Server Information
+## Set Generator Information
+## Set Fuel Information
+## Set Power Information
+# Server Routes  
+## Route /
+## Route /generator
+## Route /generator/:generatorID
+## Route /generator/:generatorID/fuelConsumed
+## Route /generator/:generatorID/powerProduced
+# Start Server  
