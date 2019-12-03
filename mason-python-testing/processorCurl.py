@@ -1,16 +1,40 @@
 import pycurl, json
+import time
 
 BASE_URL = "http://127.0.0.1:5000/generator/"
 HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
-num_gens = 100
+num_gens = 2
 num_gens = num_gens + 1
+
+start_times = dict()
+power_totals = dict()
+fuel_totals = dict()
 
 def on_receive_fuel(data):
     content = json.loads(data)
-    print(content)
+    generator = content['generator']
+    if not ('generator{}fuel'.format(generator) in start_times):
+        start_times['generator{}fuel'.format(generator)] = content['time']
+
+    if 'generator{}'.format(generator) not in fuel_totals:
+        fuel_totals['generator{}'.format(generator)] = 0
+    fuel_temp = fuel_totals['generator{}'.format(generator)]
+    fuel_totals['generator{}'.format(generator)] = fuel_temp + int(content['fuelConsumed'])
+    print(fuel_totals['generator{}'.format(generator)])
+
 
 def on_receive_power(data):
     content = json.loads(data)
+    generator = content['generator']
+    if not ('generator{}power'.format(generator) in start_times):
+        start_times['generator{}power'.format(generator)] = content['time']
+
+    if 'generator{}'.format(generator) not in power_totals:
+        power_totals['generator{}'.format(generator)] = 0
+
+    power_temp = power_totals['generator{}'.format(generator)]
+    power_totals['generator{}'.format(generator)] = power_temp + int(content['powerProduced'])
+
 
 # Pre-allocate a list of curl objects
 m = pycurl.CurlMulti()
@@ -28,5 +52,4 @@ for gen_num in range(1, num_gens):
 
 while 1:
     ret, num_handles = m.perform()
-    if ret != pycurl.E_CALL_MULTI_PERFORM:
-        break
+    time.sleep(0.1)
