@@ -50,7 +50,7 @@ for(i = 0; i < generators; ++i){
         data.endTime = values["time"];
         data.output = output_sums[j]/inputOutputRatio;
         data.input = input_sums[j];
-        data.efficiency = (data.input)/(data.output*3.412);
+        data.efficiency = (data.input*3.412)/(data.output);
         sendData(data);
         // RESET ACCUMULATION and TIME
         output_sums[j] = 0.0;

@@ -69,7 +69,7 @@ setInterval(function() {
 // Helper Functions
 /////////////////////////////////////////////////////////////////////////////////
 function setOutboundEmitter(num) {
-  output[num] = rng[num + 3000]();
+  output[num] = 3.412*rng[num + 3000]();
   myEmitter.emit('generator output ' + num, arguments.callee);
   return;
 }
