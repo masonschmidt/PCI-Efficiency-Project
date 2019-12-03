@@ -1,3 +1,46 @@
+# Running Server
+## Windows
+Head to https://nodejs.org/en/download/ and download and Install the Latest Long-Term Support (LTS) Node Js.  
+With Downloading Node, you should have also downloaded a support package with CLI called NPM.
+Next, clone into the git repository via https://github.com/masonschmidt/PCI-Efficiency-Project.git  
+The repository should have the Dependencies installed already, however, if there are issue, ensure  
+Express, Connect-Timeout, and Seed Random are installed and saved using:
+```
+npm install express --save
+npm install connect-timeout --save
+npm install seedrandom --save
+```
+Now all dependencies should be correct and you should be able to run the server.
+Run the command  
+```
+node generator_model.js
+```
+and it should create endpoints at http://127.0.0.1/3001  
+
+## Linux
+Open the Terminal and use the commands  
+```
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install nodejs -y
+sudo apt-get install npm -y
+```
+to download Node JS.
+With Downloading Node, you should have also downloaded a support package with CLI called NPM.
+Next, clone into the git repository via https://github.com/masonschmidt/PCI-Efficiency-Project.git  
+The repository should have the Dependencies installed already, however, if there are issue, ensure  
+Express, Connect-Timeout, and Seed Random are installed and saved using:
+```
+npm install express --save
+npm install connect-timeout --save
+npm install seedrandom --save
+```
+Now all dependencies should be correct and you should be able to run the server.
+Run the command  
+```
+node generator_model.js
+```
+and it should create endpoints at http://127.0.0.1/3001  
+
 # Generator_Model.js
 ## Node Server Dependencies  
 | Dependency      | Description                                                                                                        |
@@ -56,13 +99,13 @@ Function that sends the response to the the corresponding endpoint whether this 
 | Set Power Information     | Sets the Power information in a JSON object called Data. |
 
 ## Server Routes  
-| Route                                       | Description                                                                                                                       |
-|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| /                                           | Testing Route that returns the url and the query as JSON.                                                                         |
-| /generator                                  | Testing Route that returns the url and the query as JSON.                                                                         |
-| /generator/:generatorID                     | Route that returns the input every n seconds and the output every n seconds. Generator ID is a path parameter that is an integer. |
-| /generator/:generatorID/fuelConsumed        | Route that returns the input every n seconds only. Generator ID is a path parameter that is an integer.                           |
-| Route /generator/:generatorID/powerProduced | Route that returns the output every n seconds only. Generator ID is a path parameter that is an integer.                          |
+| Route                                 | Description                                                                                                                       |
+|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| /                                     | Testing Route that returns the url and the query as JSON.                                                                         |
+| /generator                            | Testing Route that returns the url and the query as JSON.                                                                         |
+| /generator/:generatorID               | Route that returns the input every n seconds and the output every n seconds. Generator ID is a path parameter that is an integer. |
+| /generator/:generatorID/fuelConsumed  | Route that returns the input every n seconds only. Generator ID is a path parameter that is an integer.                           |
+| /generator/:generatorID/powerProduced | Route that returns the output every n seconds only. Generator ID is a path parameter that is an integer.                          |
 
 ## Start Server  
 Function that allows the Server to Listen on a certain port. The current IP address is on Local Host.
