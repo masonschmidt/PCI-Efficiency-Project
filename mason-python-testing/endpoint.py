@@ -2,6 +2,7 @@ import time
 import random
 from random import randrange
 from datetime import datetime
+from datetime import timezone
 from flask import Flask, Response, stream_with_context
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
@@ -14,7 +15,8 @@ import json
 number_of_generators = 100
 number_of_generators = number_of_generators + 1
 #constant to specify how long between data updates
-delay = 5
+delay_fuel = 5
+delay_power = 10
 
 #basically creates the flask server
 app = Flask(__name__)
@@ -45,15 +47,20 @@ conn = redis.Redis()
 scheduler.start()
 
 #the function the scheduler runs to update the values for each generator
-def putGeneratorValues():
+def putGeneratorFuelValues():
     for i in range(1,number_of_generators):
         conn.publish('generator{}fuel'.format(i),
         '{}'.format(randrange(100)).encode('utf-8'))
+
+#the function the scheduler runs to update the values for each generator
+def putGeneratorPowerValues():
+    for i in range(1,number_of_generators):
         conn.publish('generator{}power'.format(i),
-        '{}'.format(randrange(100)).encode('utf-8'))
+        '{}'.format(randrange(100, 340)).encode('utf-8'))
 
 #adds the function putGeneratosValue to the scheduler to run every 5 seconds
-job = scheduler.add_job(putGeneratorValues, 'interval', seconds=delay)
+job_fuel = scheduler.add_job(putGeneratorFuelValues, 'interval', seconds=delay_fuel)
+job_power = scheduler.add_job(putGeneratorPowerValues, 'interval', seconds=delay_power)
 
 # when the user inputs the path .../generator/someidvalue/fuelConsumed this
 #function begins yielding generator values every 5 seconds for fuel consumed
@@ -66,7 +73,7 @@ def getFuelConsumed(id):
             while True:
                 for item in pubsub.listen():
                     if item['data'] != 1:
-                        current_time = "{}".format(datetime.now().isoformat())
+                        current_time = datetime.now(timezone.utc).isoformat()
                         yield json.dumps({
                         'generator': id,
                         'time': current_time,
@@ -86,7 +93,7 @@ def getPowerProduced(id):
             while True:
                 for item in pubsub.listen():
                     if item['data'] != 1:
-                        current_time = "{}".format(datetime.now().isoformat())
+                        current_time = datetime.now(timezone.utc).isoformat()
                         yield json.dumps({
                         'generator': id,
                         'time': current_time,
