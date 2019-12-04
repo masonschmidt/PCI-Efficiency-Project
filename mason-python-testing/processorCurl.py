@@ -2,9 +2,9 @@ import pycurl, json
 import time
 import dateutil.parser
 
-BASE_URL = "http://127.0.0.1:3001/generator/"
-HARD_CODE_URL = "http://127.0.0.1:3001/generator/1/fuelConsumed"
-num_gens = 100
+BASE_URL = "http://127.0.0.1:5000/generator/"
+HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
+num_gens = 500
 num_gens = num_gens + 1
 
 EFFICIENCY_CONSTANT = 0.29329722222222
@@ -15,7 +15,6 @@ power_totals = dict()
 fuel_totals = dict()
 num_data_points = dict()
 
-#TODO
 def process_eff(generator_num):
     gen_key_fuel = 'generator{}fuel'.format(generator_num)
     gen_key_power = 'generator{}power'.format(generator_num)
@@ -58,8 +57,8 @@ def process_eff(generator_num):
     return
 
 def on_receive_fuel(data):
-    print(data)
     content = json.loads(data)
+    print(content)
     generator = content['generator']
 
     gen_timestamp = dateutil.parser.parse(content['time'])
@@ -85,8 +84,9 @@ def on_receive_fuel(data):
 
 
 def on_receive_power(data):
-    print(data)
     content = json.loads(data)
+    print(content)
+
     generator = content['generator']
 
     gen_timestamp = dateutil.parser.parse(content['time'])
@@ -131,4 +131,5 @@ for gen_num in range(1, num_gens):
 
 while 1:
     ret, num_handles = m.perform()
+    print("ret: {} num_handles: {}".format(ret, num_handles))
     time.sleep(0.1)

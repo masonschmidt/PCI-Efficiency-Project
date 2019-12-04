@@ -3,7 +3,7 @@ import random
 from random import randrange
 from datetime import datetime
 from datetime import timezone
-from flask import Flask, Response, stream_with_context
+from flask import Flask, Response, stream_with_context, g, session
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -12,14 +12,11 @@ import redis
 import json
 
 #constant to specify how many generators to start with the server
-number_of_generators = 100
+number_of_generators = 500
 number_of_generators = number_of_generators + 1
 #constant to specify how long between data updates
 delay_fuel = 5
 delay_power = 10
-
-#basically creates the flask server
-app = Flask(__name__)
 
 #this section is for details about the scheduler that is updating the
 #generators in the background
@@ -40,22 +37,38 @@ job_defaults = {
 scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors,
 job_defaults=job_defaults, time=utc)
 
-#a connection to the background storage that all instances share.
-conn = redis.Redis()
+#a redis_connection to the background storage that all instances share.
+def get_redis_connection():
+    if not hasattr(g, 'redis_conn'):
+        session.redis_conn = redis.Redis()
+    return session.redis_conn
+
+#basically creates the flask server
+def create_app():
+    app = Flask(__name__)
+
+    with app.app_context():
+        get_redis_connection()
+
+    return app
+
+app = create_app()
 
 #starts the scheduler
 scheduler.start()
 
 #the function the scheduler runs to update the values for each generator
 def putGeneratorFuelValues():
+    redis_conn = get_redis_connection()
     for i in range(1,number_of_generators):
-        conn.publish('generator{}fuel'.format(i),
+        redis_conn.publish('generator{}fuel'.format(i),
         '{}'.format(randrange(100)).encode('utf-8'))
 
 #the function the scheduler runs to update the values for each generator
 def putGeneratorPowerValues():
+    redis_conn = get_redis_connection()
     for i in range(1,number_of_generators):
-        conn.publish('generator{}power'.format(i),
+        redis_conn.publish('generator{}power'.format(i),
         '{}'.format(randrange(100, 340)).encode('utf-8'))
 
 #adds the function putGeneratosValue to the scheduler to run every 5 seconds
@@ -66,9 +79,10 @@ job_power = scheduler.add_job(putGeneratorPowerValues, 'interval', seconds=delay
 #function begins yielding generator values every 5 seconds for fuel consumed
 @app.route('/generator/<id>/fuelConsumed')
 def getFuelConsumed(id):
-    pubsub = conn.pubsub()
-    pubsub.subscribe(['generator{}fuel'.format(id)])
     def generate():
+        redis_conn = get_redis_connection()
+        pubsub = redis_conn.pubsub()
+        pubsub.subscribe(['generator{}fuel'.format(id)])
         try:
             while True:
                 for item in pubsub.listen():
@@ -79,6 +93,7 @@ def getFuelConsumed(id):
                         'time': current_time,
                         'fuelConsumed': item['data'].decode('utf-8')})
         except GeneratorExit:
+            pubsub.unsubscribe()
             pubsub.close()
     return Response(generate(), mimetype='text/plain')
 
@@ -86,9 +101,10 @@ def getFuelConsumed(id):
 #function begins yielding generator values every 5 seconds for power produced
 @app.route('/generator/<id>/powerProduced')
 def getPowerProduced(id):
-    pubsub = conn.pubsub()
-    pubsub.subscribe(['generator{}power'.format(id)])
     def generate():
+        redis_conn = get_redis_connection()
+        pubsub = redis_conn.pubsub()
+        pubsub.subscribe(['generator{}power'.format(id)])
         try:
             while True:
                 for item in pubsub.listen():
@@ -99,6 +115,7 @@ def getPowerProduced(id):
                         'time': current_time,
                         'powerProduced': item['data'].decode('utf-8')})
         except GeneratorExit:
+            pubsub.unsubscribe()
             pubsub.close()
     return Response(generate(), mimetype='text/plain')
 

@@ -28,11 +28,7 @@ deactivate () {
     fi
 
     unset VIRTUAL_ENV
-<<<<<<< HEAD
-    if [ ! "${1:-}" = "nondestructive" ] ; then
-=======
     if [ ! "$1" = "nondestructive" ] ; then
->>>>>>> 6fa881f75740879be432c459b9cab8a7b7aa2895
     # Self destruct!
         unset -f deactivate
     fi
@@ -41,11 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-<<<<<<< HEAD
-VIRTUAL_ENV="C:\Users\melka\PCI-Efficiency-Project\mason-python-testing\venv"
-=======
 VIRTUAL_ENV="C:\PCI-Efficiency-Project\mason-python-testing\venv"
->>>>>>> 6fa881f75740879be432c459b9cab8a7b7aa2895
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
