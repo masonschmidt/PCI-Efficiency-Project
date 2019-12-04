@@ -15,7 +15,7 @@ Run the command
 ```
 node generator_model.js
 ```
-and it should create endpoints at http://127.0.0.1/3001  
+and it should create endpoints at http://127.0.0.1:3001  
 
 ## Linux
 Open the Terminal and use the commands  

@@ -27,7 +27,11 @@ function global:deactivate ([switch]$NonDestructive) {
 
 deactivate -nondestructive
 
+<<<<<<< HEAD
 $env:VIRTUAL_ENV="C:\Users\melka\PCI-Efficiency-Project\mason-python-testing\venv"
+=======
+$env:VIRTUAL_ENV="C:\PCI-Efficiency-Project\mason-python-testing\venv"
+>>>>>>> 6fa881f75740879be432c459b9cab8a7b7aa2895
 
 if (! $env:VIRTUAL_ENV_DISABLE_PROMPT) {
     # Set the prompt to include the env name
