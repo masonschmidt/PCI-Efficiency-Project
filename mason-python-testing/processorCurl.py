@@ -4,7 +4,7 @@ import dateutil.parser
 
 BASE_URL = "http://127.0.0.1:5000/generator/"
 HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
-num_gens = 2
+num_gens = 100
 num_gens = num_gens + 1
 
 EFFICIENCY_CONSTANT = 0.29329722222222
@@ -58,6 +58,7 @@ def process_eff(generator_num):
     return
 
 def on_receive_fuel(data):
+    print(data)
     content = json.loads(data)
     generator = content['generator']
 
@@ -73,7 +74,7 @@ def on_receive_fuel(data):
     if not ('generator{}fuel'.format(generator) in start_times) or start_times['generator{}fuel'.format(generator)] == None:
         start_times['generator{}fuel'.format(generator)] = gen_timestamp
 
-    print('fuel generator: {} time: {}'.format(generator, content['time']))
+    #print('fuel generator: {} time: {}'.format(generator, content['time']))
 
 
     if 'generator{}'.format(generator) not in fuel_totals:
@@ -84,6 +85,7 @@ def on_receive_fuel(data):
 
 
 def on_receive_power(data):
+    print(data)
     content = json.loads(data)
     generator = content['generator']
 
@@ -104,7 +106,7 @@ def on_receive_power(data):
         if time_diff_sec >= 59:
             process_eff(content['generator'])
 
-    print('power generator: {} time: {}'.format(generator, content['time']))
+    #print('power generator: {} time: {}'.format(generator, content['time']))
 
     if 'generator{}'.format(generator) not in power_totals:
         power_totals['generator{}'.format(generator)] = 0
@@ -129,4 +131,4 @@ for gen_num in range(1, num_gens):
 
 while 1:
     ret, num_handles = m.perform()
-    time.sleep(0.01)
+    time.sleep(0.1)
