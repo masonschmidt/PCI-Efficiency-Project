@@ -1,10 +1,12 @@
 import pycurl, json
 import time
 import dateutil.parser
+from datetime import datetime
+from datetime import timezone
 
-BASE_URL = "http://127.0.0.1:3001/generator/"
-HARD_CODE_URL = "http://127.0.0.1:3001/generator/1/fuelConsumed"
-num_gens = 100
+BASE_URL = "http://127.0.0.1:5000/generator/"
+HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
+num_gens = 2
 num_gens = num_gens + 1
 
 EFFICIENCY_CONSTANT = 0.29329722222222
@@ -62,6 +64,10 @@ def on_receive_fuel(data):
     content = json.loads(data)
     generator = content['generator']
 
+    print(content['time'])
+
+    #gen_timestamp = datetime.utcfromtimestamp(content['time'])
+
     gen_timestamp = dateutil.parser.parse(content['time'])
 
     most_recent_times['generator{}fuel'.format(generator)] = gen_timestamp
@@ -88,6 +94,9 @@ def on_receive_power(data):
     print(data)
     content = json.loads(data)
     generator = content['generator']
+
+    print(content['time'])
+    #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
     gen_timestamp = dateutil.parser.parse(content['time'])
 
