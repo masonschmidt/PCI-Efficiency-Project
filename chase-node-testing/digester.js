@@ -1,5 +1,7 @@
 var EventSource = require("eventsource");
+/*
 const Pool = require('pg').Pool
+
 const pool = new Pool({
   user: 'cglenn',
   host: 'localhost',
@@ -7,6 +9,7 @@ const pool = new Pool({
   password: 'cglenn',
   port: 5432,
 })
+*/
 
 var generators = 3000;
 var efficiencyTime = 30000;
@@ -18,7 +21,7 @@ var times = new Array(generators).fill(0);
 
 var sources = []
 for(i = 0; i < generators; ++i){
-  sources.push(new EventSource('http://127.0.0.1:3000/generator/' + i + '/'));
+  sources.push(new EventSource('http://127.0.0.1:3001/generator/' + i + '/'));
   sources[i].onmessage = function(e) {
 
     // Get JSON from EndPoint
@@ -28,13 +31,15 @@ for(i = 0; i < generators; ++i){
     // If Data is Power Produced
     if(values.hasOwnProperty('powerProduced')){
       output_sums[j] += values["powerProduced"];
-      pool.query('INSERT INTO powerProduced (generator, time, output) VALUES ($1, $2, $3)', [values["generator"], values["time"], values["powerProduced"]], (error, results) => {
-        if (error) {console.log('Database Error has Occurred'); throw error;}})
+      //pool.query('INSERT INTO powerProduced (generator, time, output) VALUES ($1, $2, $3)', [values["generator"], values["time"], values["powerProduced"]], (error, results) => {
+        //if (error) {console.log('Database Error has Occurred'); throw error;}})
+        console.log('output: ' + values['powerProduced'])
     }
     // If Data is Fuel Consumed
     if(values.hasOwnProperty('fuelConsumed')){
-      pool.query('INSERT INTO fuelConsumed (generator, time, input) VALUES ($1, $2, $3)', [values["generator"], values["time"], values["fuelConsumed"]], (error, results) => {
-        if (error) {console.log('Database Error has Occurred'); throw error;}})
+      //pool.query('INSERT INTO fuelConsumed (generator, time, input) VALUES ($1, $2, $3)', [values["generator"], values["time"], values["fuelConsumed"]], (error, results) => {
+        //if (error) {console.log('Database Error has Occurred'); throw error;}})
+      console.log('output: ' + values['fuelConsumed'])
       input_sums[j] += values["fuelConsumed"];
     }
 
@@ -63,6 +68,7 @@ for(i = 0; i < generators; ++i){
 }
 
 function sendData(data){
-  pool.query('INSERT INTO generatorefficiency (generator, starttime, endtime, accumulatedinput, accumulatedoutput, efficiency) VALUES ($1, $2, $3, $4, $5, $6)', [data.generator, data.startTime, data.endTime, data.input, data.output, data.efficiency], (error, results) => {
-    if (error) {console.log('Database Error has Occurred'); throw error;}})
+  //pool.query('INSERT INTO generatorefficiency (generator, starttime, endtime, accumulatedinput, accumulatedoutput, efficiency) VALUES ($1, $2, $3, $4, $5, $6)', [data.generator, data.startTime, data.endTime, data.input, data.output, data.efficiency], (error, results) => {
+    //if (error) {console.log('Database Error has Occurred'); throw error;}})
+
 }
