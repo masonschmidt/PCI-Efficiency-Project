@@ -60,11 +60,10 @@ def process_eff(generator_num):
     return
 
 def on_receive_fuel(data):
-    print(data)
     content = json.loads(data)
+    print(content)
+    print()
     generator = content['generator']
-
-    print(content['time'])
 
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
@@ -91,11 +90,11 @@ def on_receive_fuel(data):
 
 
 def on_receive_power(data):
-    print(data)
     content = json.loads(data)
+    print(content)
+    print()
     generator = content['generator']
 
-    print(content['time'])
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
     gen_timestamp = dateutil.parser.parse(content['time'])
