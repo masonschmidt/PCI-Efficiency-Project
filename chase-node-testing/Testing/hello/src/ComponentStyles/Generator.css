@@ -1,0 +1,25 @@
+
+.GeneratorTitle {
+  position: relative;
+}
+
+h2 {
+  font-size: 2vh;
+  padding: 0;
+  margin: .5vh 0 0 0;
+  color: #fff;
+}
+
+.TitleSpan {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+  border: 1px solid #000;
+  background-color: black;
+}
+
+.Plot {
+  position: relative;
+  background-color: green;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}

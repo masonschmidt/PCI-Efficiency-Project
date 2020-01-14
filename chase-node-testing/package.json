@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "connect-timeout": "^1.9.0",
+    "create-react-app": "^3.3.0",
     "crontab": "^1.2.0",
     "eventsource": "^1.0.7",
     "express": "^4.17.1",

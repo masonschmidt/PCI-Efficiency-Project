@@ -102,8 +102,10 @@ function setHead(res, streaming){
   if(streaming){
     res.set({
       'Connection' : 'keep-alive',
-      'Content-Type' : 'application/json',
-      'Cache-Control' : 'no-cache'
+      'Content-Type' : 'text/event-stream',
+      'Cache-Control' : 'no-cache',
+      'Access-Control-Allow-Origin' : '*',
+
     })
   } else {
     res.set({
