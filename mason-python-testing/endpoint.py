@@ -50,7 +50,7 @@ scheduler.start()
 def putGeneratorFuelValues():
     for i in range(1,number_of_generators):
         conn.publish('generator{}fuel'.format(i),
-        '{}'.format(randrange(100)).encode('utf-8'))
+        '{}'.format(randrange(2, 100)).encode('utf-8'))
 
 #the function the scheduler runs to update the values for each generator
 def putGeneratorPowerValues():

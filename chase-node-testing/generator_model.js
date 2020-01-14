@@ -115,7 +115,7 @@ function setHead(res, streaming){
 }
 
 function sendResponse(res, data, streaming) {
-  if(streaming) res.write('data: ' + JSON.stringify(data) + '\n\n');
+  if(streaming) res.write(JSON.stringify(data));
   else res.send('data: ' + JSON.stringify(data) + '\n\n');
 }
 
