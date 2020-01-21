@@ -62,7 +62,7 @@ def process_eff(generator_num):
 def on_receive_fuel(data):
     print(data)
     content = json.loads(data)
-    print(content)
+
     print()
     generator = content['generator']
 
@@ -93,7 +93,7 @@ def on_receive_fuel(data):
 def on_receive_power(data):
     print(data)
     content = json.loads(data)
-    print(content)
+
     print()
     generator = content['generator']
 
