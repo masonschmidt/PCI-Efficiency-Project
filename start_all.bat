@@ -1,0 +1,2 @@
+start start_node_server.bat
+start start_python_processor.bat

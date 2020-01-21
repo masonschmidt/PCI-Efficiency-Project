@@ -17,7 +17,7 @@ const port = 3001;
 const inputTime = 10000;
 const outputTime = 5000;
 const statusTime = 5000;
-const serverSize = 3000;
+const serverSize = 3001;
 
 var rng = [];
 var input = [];
