@@ -126,21 +126,21 @@ function setFuelInformation(req, res, num){
   queries = req.query["id"];
   if (queries == null){
     data.generator = num;
-    data.time = Date.now();
+    data.time = new Date().toISOString();
     data.fuelConsumed = input[num]*3.4;
     sendResponse(res, data, true);
     return;
   }
   if (typeof queries == 'string') {
     if(queries.toLowerCase().includes('generator')) data.generator = num;
-    if(queries.toLowerCase().includes('time')) data.time = Date.now();
+    if(queries.toLowerCase().includes('time')) data.time = new Date().toISOString();
     if(queries.toLowerCase().includes('fuelconsumed') || queries.toLowerCase().includes('input')) data.fuelConsumed = input[num];
     sendResponse(res, data, true);
     return;
   }
   for(i = 0; i < queries.length; i++){
     if(queries[i].toLowerCase().includes('generator')) data.generator = num;
-    if(queries[i].toLowerCase().includes('time')) data.time = Date.now();
+    if(queries[i].toLowerCase().includes('time')) data.time = new Date().toISOString();
     if(queries[i].toLowerCase().includes('fuelconsumed') || queries.toLowerCase().includes('input')) data.fuelConsumed = input[num];
   }
   sendResponse(res, data, true);
@@ -153,21 +153,21 @@ function setPowerInformation(req, res, num){
   queries = req.query["id"];
   if (queries == null){
     data.generator = num;
-    data.time = Date.now();
+    data.time = new Date().toISOString();
     data.powerProduced = output[num];
     sendResponse(res, data, true);
     return;
   }
   if (typeof queries == 'string') {
     if(queries.toLowerCase().includes('generator')) data.generator = num;
-    if(queries.toLowerCase().includes('time')) data.time = Date.now();
+    if(queries.toLowerCase().includes('time')) data.time = new Date().toISOString();
     if(queries.toLowerCase().includes('powerproduced') || queries.toLowerCase().includes('output')) data.powerProduced = output[num];
     sendResponse(res, data, true);
     return;
   }
   for(i = 0; i < queries.length; i++){
     if(queries[i].toLowerCase().includes('generator')) data.generator = num;
-    if(queries[i].toLowerCase().includes('time')) data.time = Date.now();
+    if(queries[i].toLowerCase().includes('time')) data.time = new Date().toISOString();
     if(queries[i].toLowerCase().includes('powerproduced') || queries.toLowerCase().includes('output')) data.powerProduced = output[num];
   }
   sendResponse(res, data, true);
