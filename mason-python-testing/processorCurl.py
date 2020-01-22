@@ -3,12 +3,14 @@ import time
 import dateutil.parser
 from datetime import datetime
 from datetime import timezone
+import pprint
+
 BASE_URL = "http://127.0.0.1:3001/generator/"
 #BASE_URL = "http://127.0.0.1:5000/generator/"
 HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
 num_gens = 2
 num_gens = num_gens + 1
-
+AGGREGRATION_DELAY = 30
 EFFICIENCY_CONSTANT = 0.29329722222222
 
 start_times = dict()
@@ -16,9 +18,14 @@ most_recent_times = dict()
 power_totals = dict()
 fuel_totals = dict()
 num_data_points = dict()
+power_data_dict = dict()
+fuel_data_dict = dict()
+pp = pprint.PrettyPrinter(indent=4)
 
 #TODO
 def process_eff(generator_num):
+    pp.pprint(power_data_dict)
+    pp.pprint(fuel_data_dict)
     gen_key_fuel = 'generator{}fuel'.format(generator_num)
     gen_key_power = 'generator{}power'.format(generator_num)
     gen_key = 'generator{}'.format(generator_num)
@@ -60,11 +67,16 @@ def process_eff(generator_num):
     return
 
 def on_receive_fuel(data):
-    print(data)
+    #print(data)
     content = json.loads(data)
 
-    print()
+    #print()
     generator = content['generator']
+
+    if generator not in fuel_data_dict:
+        fuel_data_dict[generator] = list()
+
+    fuel_data_dict[generator].append(content)
 
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
@@ -91,11 +103,16 @@ def on_receive_fuel(data):
 
 
 def on_receive_power(data):
-    print(data)
+    #print(data)
     content = json.loads(data)
 
-    print()
+    #print()
     generator = content['generator']
+
+    if generator not in power_data_dict:
+        power_data_dict[generator] = list()
+
+    power_data_dict[generator].append(content)
 
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
@@ -113,7 +130,7 @@ def on_receive_power(data):
     else:
         time_diff = gen_timestamp - start_times['generator{}power'.format(generator)]
         time_diff_sec = time_diff.days * 24 * 3600 + time_diff.seconds
-        if time_diff_sec >= 59:
+        if time_diff_sec >= AGGREGRATION_DELAY:
             process_eff(content['generator'])
 
     #print('power generator: {} time: {}'.format(generator, content['time']))
@@ -127,6 +144,7 @@ def on_receive_power(data):
 
 # Pre-allocate a list of curl objects
 m = pycurl.CurlMulti()
+#m.setopt(pycurl.M_MAX_CONCURRENT_STREAMS, 6000)
 
 for gen_num in range(1, num_gens):
     conn_fuel = pycurl.Curl()
