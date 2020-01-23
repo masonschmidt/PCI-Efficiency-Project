@@ -122,7 +122,6 @@ function sendResponse(res, data, streaming) {
 /////////////////////////////////////////////////////////////////////////////////
 function setFuelInformation(req, res, num){
   data = {}
-
   queries = req.query["id"];
   if (queries == null){
     data.generator = num;
@@ -149,7 +148,6 @@ function setFuelInformation(req, res, num){
 
 function setPowerInformation(req, res, num){
   data = {}
-
   queries = req.query["id"];
   if (queries == null){
     data.generator = num;
@@ -192,7 +190,7 @@ app.get('/generator/:generatorID', function (req, res) {
 
 app.get('/generator/:generatorID/fuelConsumed', function (req, res) {
   setHead(res, true);
-  num = parseInt(req.params["generatorID"], 10)
+  let num = parseInt(req.params["generatorID"], 10)
   if (inputEmitters[num] == null) inputEmitters[num] = setInterval(function() { setInboundEmitter(num); }, inputTime);
   connections[num].push(1);
   myEmitter.on('generator input ' + num, function() { setFuelInformation(req, res, num); });
@@ -201,7 +199,7 @@ app.get('/generator/:generatorID/fuelConsumed', function (req, res) {
 
 app.get('/generator/:generatorID/powerProduced', function (req, res) {
   setHead(res, true);
-  num = parseInt(req.params["generatorID"], 10)
+  let num = parseInt(req.params["generatorID"], 10)
   if (outputEmitters[num] == null) outputEmitters[num] = setInterval(function() { setOutboundEmitter(num); }, outputTime);
   connections[num].push(1);
   myEmitter.on('generator output ' + num, function() { setPowerInformation(req, res, num); });
