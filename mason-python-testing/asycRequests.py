@@ -2,16 +2,22 @@ import aiohttp
 import asyncio
 import json
 
-async def get(url, session):
+generator_data = []
+
+async def get(url, session, gen_num):
     async with session.get(url) as response:
         async for data, _ in response.content.iter_chunks():
-            print (data)
+            generator_data.append(data)
+            if(gen_num == 3000):
+                print(len(generator_data))
         return response
 
-loop = asyncio.get_event_loop()
+loop = asyncio.ProactorEventLoop()
+asyncio.set_event_loop(loop)
 
-session = aiohttp.ClientSession()
+conn = aiohttp.TCPConnector(limit=0)
+session = aiohttp.ClientSession(connector=conn)
 
-coroutines = [get("http://127.0.0.1:3001/generator/{}/powerProduced".format(i), session) for i in range(2999)]
+coroutines = [get("http://127.0.0.1:3001/generator/{}/powerProduced".format(i), session, i) for i in range(1, 3001)]
 
 results = loop.run_until_complete(asyncio.gather(*coroutines))
