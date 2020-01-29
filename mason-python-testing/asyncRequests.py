@@ -14,13 +14,22 @@ async def get(url, session, gen_num, data_type):
         async for data, _ in response.content.iter_chunks():
             if(url not in generator_data):
                 generator_data[url] = []
-            generator_data[url].append(data)
-            if(data_type == 'power' && len(generator_data[url]) >= 6):
-                async with session.put("{}.{}/".format(POWER_BUCKET, AWS_PATH),
-                    data=b'example_data', auth=AWS_AUTH)
-            elif(data_type == 'fuel' && len(generator_data[url]) >= 12):
-                async with session.put("{}.{}/".format(FUEL_BUCKET, AWS_PATH),
-                    data=b'example_data', auth=AWS_AUTH)
+
+            json_content = json.loads(data)
+            generator_data[url].append(json_content)
+
+            if(data_type == 'power' and len(generator_data[url]) >= 6):
+                json_file = json.dumps(generator_data[url])
+
+                #async with session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),
+                    #data=json_file, auth=AWS_AUTH)
+
+            elif(data_type == 'fuel' and len(generator_data[url]) >= 12):
+                json_file = json.dumps(generator_data[url])
+
+                #async with session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),
+                    #data=json_file, auth=AWS_AUTH)
+
             if(gen_num == 3000):
                 #print("length: {}, url: {}".format(len(generator_data), url))
                 print(url)
