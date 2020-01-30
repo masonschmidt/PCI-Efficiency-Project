@@ -8,6 +8,9 @@ AWS_PATH = "s3.example-region.amazonaws.com"
 POWER_BUCKET = "powerbucket"
 FUEL_BUCKET = "fuelbucket"
 AWS_AUTH = "example auth string"
+BUCKET_NAME = "pci-effciency-project-test"
+BUCKET_ACCESS_KEY = ""
+BUCKET_SECRET_ACCESS_KEY = ""
 
 AWS_ON = False
 
@@ -32,12 +35,18 @@ async def get(url, session, gen_num, data_type):
             #prep the data for transport and ship it to aws if the conditions are met
             if(data_type == 'power' and len(generator_data[url]) >= 6):
                 json_file = json.dumps(generator_data[url])
-
+                
                 if AWS_ON:
-                    session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
-
+                    s3 = boto3.resource( 's3',
+                    aws_access_key_id=BUCKET_ACCESS_KEY,
+                    aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
+                    config=Config(signature_version='s3v4')
+                    )
+                    s3.Bucket(BUCKET_NAME).put_object(Key='json_file', Body=data)
+                
                 #reset data
                 generator_data[url] = []
+
 
             elif(data_type == 'fuel' and len(generator_data[url]) >= 12):
                 json_file = json.dumps(generator_data[url])
