@@ -5,13 +5,13 @@ import boto3
 from botocore.client import Config
 
 #Constansts for use later.
-AWS_PATH = "s3.example-region.amazonaws.com"
 POWER_BUCKET = "power-bucket-test"
 FUEL_BUCKET = "fuel-bucket-test"
 AWS_AUTH = "example auth string"
 #BUCKET_NAME = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
+NUMBER_OF_GENERATORS = 2
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -33,6 +33,7 @@ async def get(url, session, gen_num, data_type):
 
             #prep the data for transport and ship it to aws if the conditions are met
             if(data_type == 'power' and len(generator_data[url]) >= 6):
+                print("Sending power data for generator {}...".format(gen_num))
                 json_file = json.dumps(generator_data[url])
 
                 #async with session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),
@@ -43,9 +44,11 @@ async def get(url, session, gen_num, data_type):
                     config=Config(signature_version='s3v4')
                 )
 
-                s3.Bucket(POWER_BUCKET).put_object(Key='json_file', Body=data)
+                s3.Bucket(POWER_BUCKET).put_object(Key='{}.json'.format(json_content['time']), Body=json_file)
+                print("Power data sent")
 
             elif(data_type == 'fuel' and len(generator_data[url]) >= 12):
+                print("Sending fuel data for generator {}...".format(gen_num))
                 json_file = json.dumps(generator_data[url])
 
                 #async with session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),
@@ -56,11 +59,11 @@ async def get(url, session, gen_num, data_type):
                     config=Config(signature_version='s3v4')
                 )
 
-                s3.Bucket(FUEL_BUCKET).put_object(Key='json_file', Body=data)
-
+                s3.Bucket(FUEL_BUCKET).put_object(Key='{}.json'.format(json_content['time'], Body=json_file))
+                print("Fuel data sent")
 
             #For debugging
-            if(gen_num == 3000):
+            if(gen_num == NUMBER_OF_GENERATORS):
                 #print("length: {}, url: {}".format(len(generator_data), url))
                 print(url)
         return response
@@ -79,7 +82,7 @@ session = aiohttp.ClientSession(connector=conn, timeout=timeout)
 
 #Create the coroutines to be run and add them to a list
 coroutines = []
-for i in range(1, 3001):
+for i in range(1, NUMBER_OF_GENERATORS+1):
     power_url = "http://127.0.0.1:3001/generator/{}/powerProduced".format(i)
     fuel_url = "http://127.0.0.1:3001/generator/{}/fuelConsumed".format(i)
     coroutines.append(get(power_url, session, i, 'power'))
