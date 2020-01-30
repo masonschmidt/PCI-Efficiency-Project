@@ -11,7 +11,9 @@ AWS_AUTH = "example auth string"
 #BUCKET_NAME = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
-NUMBER_OF_GENERATORS = 2
+NUMBER_OF_GENERATORS = 4
+
+AWS_ON = False
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -32,21 +34,22 @@ async def get(url, session, gen_num, data_type, s3):
             generator_data[url].append(json_content)
 
             #prep the data for transport and ship it to aws if the conditions are met
-            if(data_type == 'power' and len(generator_data[url]) >= 6):
+            if(data_type == 'power' and len(generator_data[url]) >= 12):
                 print("Sending power data for generator {}...".format(gen_num))
                 json_file = json.dumps(generator_data[url])
 
-                s3.Bucket(POWER_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                if AWS_ON:
+                    s3.Bucket(POWER_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
 
                 print("Power data sent for generator {}".format(gen_num))
 
                 generator_data[url] = []
-
-            elif(data_type == 'fuel' and len(generator_data[url]) >= 12):
+            elif(data_type == 'fuel' and len(generator_data[url]) >= 6):
                 print("Sending fuel data for generator {}...".format(gen_num))
                 json_file = json.dumps(generator_data[url])
 
-                s3.Bucket(FUEL_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                if AWS_ON:
+                    s3.Bucket(FUEL_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
 
                 print("Fuel data sent for generator {}".format(gen_num))
 
@@ -71,6 +74,8 @@ s3 = boto3.resource( 's3',
     aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
     config=Config(signature_version='s3v4')
 )
+
+
 
 #result = s3.get_bucket_acl(Bucket=POWER_BUCKET)
 #print(result)
