@@ -3,12 +3,14 @@ import time
 import dateutil.parser
 from datetime import datetime
 from datetime import timezone
+import pprint
+
 BASE_URL = "http://127.0.0.1:3001/generator/"
 #BASE_URL = "http://127.0.0.1:5000/generator/"
-HARD_CODE_URL = "http://127.0.0.1:5000/generator/1/fuelConsumed"
+
 num_gens = 2
 num_gens = num_gens + 1
-
+AGGREGRATION_DELAY = 9
 EFFICIENCY_CONSTANT = 0.29329722222222
 
 start_times = dict()
@@ -16,9 +18,14 @@ most_recent_times = dict()
 power_totals = dict()
 fuel_totals = dict()
 num_data_points = dict()
+power_data_dict = dict()
+fuel_data_dict = dict()
 
 #TODO
 def process_eff(generator_num):
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(power_data_dict)
+    pp.pprint(fuel_data_dict)
     gen_key_fuel = 'generator{}fuel'.format(generator_num)
     gen_key_power = 'generator{}power'.format(generator_num)
     gen_key = 'generator{}'.format(generator_num)
@@ -29,9 +36,6 @@ def process_eff(generator_num):
     recent_time_fuel = most_recent_times[gen_key_fuel]
     start_time_power = start_times[gen_key_power]
     recent_time_power = most_recent_times[gen_key_power]
-
-    print('generator number: {}\nstart_time_fuel: {}\nmost recent time fuel: {}\nstart_time_power: {}\nmost recent time power: {}\npower totals: {}\nfuel totals: {}'.format(
-    generator_num,start_time_fuel, recent_time_fuel, start_time_power, recent_time_power, gen_power, gen_fuel))
 
     time_dif_fuel = recent_time_fuel - start_time_fuel
     time_dif_fuel_sec = time_dif_fuel.days * 24 * 3600 + time_dif_fuel.seconds
@@ -45,11 +49,25 @@ def process_eff(generator_num):
     avg_fuel = gen_fuel/fuel_data_points
     avg_power = gen_power/power_data_points
 
-    print('avg fuel: {} avg power: {}'.format(avg_fuel, avg_power))
 
     avg_efficiency = avg_fuel/(avg_power*EFFICIENCY_CONSTANT)
 
-    print('efficiency: {}'.format(avg_efficiency))
+
+    efficiency_json = json.dumps({
+    'generator': generator_num,
+    'startTimeFuel': start_time_fuel.isoformat(),
+    'startTimePower': start_time_power.isoformat(),
+    'recentTimeFuel': recent_time_fuel.isoformat(),
+    'recentTimePower': recent_time_power.isoformat(),
+    'powerTotal': gen_power,
+    'fuelTotal': gen_fuel,
+    'avgFuel': avg_fuel,
+    'avgPower': avg_power,
+    'efficiency': avg_efficiency,
+    }, indent=2, sort_keys=True)
+
+
+    print(efficiency_json)
 
     start_times[gen_key_fuel] = None
     start_times[gen_key_power] = None
@@ -60,11 +78,16 @@ def process_eff(generator_num):
     return
 
 def on_receive_fuel(data):
-    print(data)
+    #print(data)
     content = json.loads(data)
 
-    print()
+    #print()
     generator = content['generator']
+
+    if 'Generator: {}'.format(generator) not in fuel_data_dict:
+        fuel_data_dict['Generator: {}'.format(generator)] = list()
+
+    fuel_data_dict['Generator: {}'.format(generator)].append(content)
 
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
@@ -91,11 +114,16 @@ def on_receive_fuel(data):
 
 
 def on_receive_power(data):
-    print(data)
+    #print(data)
     content = json.loads(data)
 
-    print()
+    #print()
     generator = content['generator']
+
+    if 'Generator: {}'.format(generator) not in power_data_dict:
+        power_data_dict['Generator: {}'.format(generator)] = list()
+
+    power_data_dict['Generator: {}'.format(generator)].append(content)
 
     #gen_timestamp = datetime.utcfromtimestamp(content['time'])
 
@@ -113,7 +141,7 @@ def on_receive_power(data):
     else:
         time_diff = gen_timestamp - start_times['generator{}power'.format(generator)]
         time_diff_sec = time_diff.days * 24 * 3600 + time_diff.seconds
-        if time_diff_sec >= 59:
+        if time_diff_sec >= AGGREGRATION_DELAY:
             process_eff(content['generator'])
 
     #print('power generator: {} time: {}'.format(generator, content['time']))
@@ -127,6 +155,7 @@ def on_receive_power(data):
 
 # Pre-allocate a list of curl objects
 m = pycurl.CurlMulti()
+#m.setopt(pycurl.M_MAX_CONCURRENT_STREAMS, 6000)
 
 for gen_num in range(1, num_gens):
     conn_fuel = pycurl.Curl()
