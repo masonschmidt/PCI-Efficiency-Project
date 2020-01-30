@@ -1,0 +1,15 @@
+.App {
+  margin: 0;
+  padding: 0;
+  width: inherit;
+  min-height: 100vh;
+}
+
+html, body {
+  background-color: black;
+  position: absolute;
+  min-height: 100%;
+  width: 100%;
+  padding: 0px;
+  margin: 0px;
+}
