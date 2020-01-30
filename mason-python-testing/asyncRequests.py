@@ -1,18 +1,17 @@
 import aiohttp
 import asyncio
 import json
-import time
+import boto3
+from botocore.client import Config
 
 #Constansts for use later.
 AWS_PATH = "s3.example-region.amazonaws.com"
-POWER_BUCKET = "powerbucket"
-FUEL_BUCKET = "fuelbucket"
+POWER_BUCKET = "power-bucket-test"
+FUEL_BUCKET = "fuel-bucket-test"
 AWS_AUTH = "example auth string"
-BUCKET_NAME = "pci-effciency-project-test"
-BUCKET_ACCESS_KEY = ""
-BUCKET_SECRET_ACCESS_KEY = ""
-
-AWS_ON = False
+#BUCKET_NAME = "pci-effciency-project-test"
+BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
+BUCKET_SECRET_ACCESS_KEY = "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"
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -35,48 +34,48 @@ async def get(url, session, gen_num, data_type):
             #prep the data for transport and ship it to aws if the conditions are met
             if(data_type == 'power' and len(generator_data[url]) >= 6):
                 json_file = json.dumps(generator_data[url])
-                
-                if AWS_ON:
-                    s3 = boto3.resource( 's3',
+
+                #async with session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),
+                    #data=json_file, auth=AWS_AUTH)
+                s3 = boto3.resource( 's3',
                     aws_access_key_id=BUCKET_ACCESS_KEY,
                     aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
                     config=Config(signature_version='s3v4')
-                    )
-                    s3.Bucket(BUCKET_NAME).put_object(Key='json_file', Body=data)
-                
-                #reset data
-                generator_data[url] = []
+                )
 
+                s3.Bucket(POWER_BUCKET).put_object(Key='json_file', Body=data)
 
             elif(data_type == 'fuel' and len(generator_data[url]) >= 12):
                 json_file = json.dumps(generator_data[url])
 
-                if AWS_ON:
-                    session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
+                #async with session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),
+                    #data=json_file, auth=AWS_AUTH)
+                s3 = boto3.resource( 's3',
+                    aws_access_key_id=BUCKET_ACCESS_KEY,
+                    aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
+                    config=Config(signature_version='s3v4')
+                )
 
-                #reset data
-                generator_data[url] = []
+                s3.Bucket(FUEL_BUCKET).put_object(Key='json_file', Body=data)
+
 
             #For debugging
             if(gen_num == 3000):
-                print("Current time: {}, URL: {}".format(time.time() - starting_time, url))
-
+                #print("length: {}, url: {}".format(len(generator_data), url))
+                print(url)
         return response
 
-starting_time = time.time()
 #Create a loop for the asyncio library (this one is specific for windows
 #because windows only allows 64 simultaneously open ports)
 loop = asyncio.ProactorEventLoop()
 asyncio.set_event_loop(loop)
 
-#Header for all put requests to AWS
-headers={"Authorization": AWS_AUTH}
 #Connector with no connection limit
 conn = aiohttp.TCPConnector(limit=0)
 #no timeout
 timeout = aiohttp.ClientTimeout(total=0)
 #Create a session for our connections with the connector and timeout
-session = aiohttp.ClientSession(connector=conn, timeout=timeout, headers=headers)
+session = aiohttp.ClientSession(connector=conn, timeout=timeout)
 
 #Create the coroutines to be run and add them to a list
 coroutines = []
@@ -85,9 +84,6 @@ for i in range(1, 3001):
     fuel_url = "http://127.0.0.1:3001/generator/{}/fuelConsumed".format(i)
     coroutines.append(get(power_url, session, i, 'power'))
     coroutines.append(get(fuel_url, session, i, 'fuel'))
-
-loop_begin_time = time.time() - starting_time
-print("Loop beggining at time: {}".format(loop_begin_time))
 
 #run all the coroutines
 results = loop.run_until_complete(asyncio.gather(*coroutines))
