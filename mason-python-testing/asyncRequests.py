@@ -34,7 +34,7 @@ async def get(url, session, gen_num, data_type):
                 json_file = json.dumps(generator_data[url])
 
                 if AWS_ON:
-                    async with session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
+                    session.put("{}.{}/generator{}/{}.json".format(POWER_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
 
                 #reset data
                 generator_data[url] = []
@@ -43,7 +43,7 @@ async def get(url, session, gen_num, data_type):
                 json_file = json.dumps(generator_data[url])
 
                 if AWS_ON:
-                    async with session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
+                    session.put("{}.{}/generator{}/{}.json".format(FUEL_BUCKET, AWS_PATH, gen_num, json_content['time']),json=json_file)
 
                 #reset data
                 generator_data[url] = []
