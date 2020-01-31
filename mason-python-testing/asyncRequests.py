@@ -11,7 +11,7 @@ AWS_AUTH = "example auth string"
 #BUCKET_NAME = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
-NUMBER_OF_GENERATORS = 4
+NUMBER_OF_GENERATORS = 2
 
 AWS_ON = False
 
@@ -39,7 +39,7 @@ async def get(url, session, gen_num, data_type, s3):
                 json_file = json.dumps(generator_data[url])
 
                 if AWS_ON:
-                    s3.Bucket(POWER_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                    s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
 
                 print("Power data sent for generator {}".format(gen_num))
 
@@ -49,7 +49,7 @@ async def get(url, session, gen_num, data_type, s3):
                 json_file = json.dumps(generator_data[url])
 
                 if AWS_ON:
-                    s3.Bucket(FUEL_BUCKET).put_object(Key='generator{}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                    s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
 
                 print("Fuel data sent for generator {}".format(gen_num))
 
@@ -69,11 +69,14 @@ timeout = aiohttp.ClientTimeout(total=0)
 #Create a session for our connections with the connector and timeout
 session = aiohttp.ClientSession(connector=conn, timeout=timeout)
 
-s3 = boto3.resource( 's3',
-    aws_access_key_id=BUCKET_ACCESS_KEY,
-    aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
-    config=Config(signature_version='s3v4')
-)
+if AWS_ON:
+    s3 = boto3.resource( 's3',
+        aws_access_key_id=BUCKET_ACCESS_KEY,
+        aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
+        config=Config(signature_version='s3v4')
+    )
+else:
+    s3 = ''
 
 
 
