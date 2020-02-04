@@ -7,10 +7,10 @@ from botocore.client import Config
 #Constansts for use later.
 POWER_BUCKET = "power-bucket-test"
 FUEL_BUCKET = "fuel-bucket-test"
-AWS_AUTH = "example auth string"
 #BUCKET_NAME = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
+
 NUMBER_OF_GENERATORS = 2
 
 AWS_ON = False
@@ -77,11 +77,6 @@ if AWS_ON:
     )
 else:
     s3 = ''
-
-
-
-#result = s3.get_bucket_acl(Bucket=POWER_BUCKET)
-#print(result)
 
 #Create the coroutines to be run and add them to a list
 coroutines = []
