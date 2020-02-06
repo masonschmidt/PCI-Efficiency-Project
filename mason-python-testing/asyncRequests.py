@@ -15,7 +15,7 @@ EFFICIENCY_CONSTANT = 0.29329722222222
 
 NUMBER_OF_GENERATORS = 2
 
-AWS_ON = True
+AWS_ON = False
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
