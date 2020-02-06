@@ -2,21 +2,73 @@ import aiohttp
 import asyncio
 import json
 import boto3
+import time
 from botocore.client import Config
 
 #Constansts for use later.
 POWER_BUCKET = "power-bucket-test"
 FUEL_BUCKET = "fuel-bucket-test"
-#BUCKET_NAME = "pci-effciency-project-test"
+EFFICIENCY_BUCKET = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "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"
+EFFICIENCY_CONSTANT = 0.29329722222222
 
 NUMBER_OF_GENERATORS = 2
 
-AWS_ON = False
+AWS_ON = True
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
+
+def process_eff(gen_num, s3):
+    power_data = generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)]
+    fuel_data = generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)]
+    generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)] = []
+    generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)] = []
+
+    start_time_power = power_data[0]['time']
+    recent_time_power = power_data[11]['time']
+    start_time_fuel = fuel_data[0]['time']
+    recent_time_fuel = fuel_data[5]['time']
+
+    power_avg = 0
+    power_total = 0
+    for data_point in power_data:
+        power = data_point['powerProduced']
+        power_total = power_total + power
+    power_avg = power_total/12
+
+    fuel_avg = 0
+    fuel_total = 0
+    for data_point in fuel_data:
+        fuel = data_point['fuelConsumed']
+        fuel_total = fuel_total + fuel
+    fuel_avg = fuel_total/6
+
+    efficiency = fuel_avg/(power_avg*EFFICIENCY_CONSTANT)
+
+    efficiency_json = json.dumps({
+    'generator': gen_num,
+    'startTimeFuel': start_time_fuel,
+    'startTimePower': start_time_power,
+    'recentTimeFuel': recent_time_fuel,
+    'recentTimePower': recent_time_power,
+    'powerTotal': power_total,
+    'fuelTotal': fuel_total,
+    'avgFuel': fuel_avg,
+    'avgPower': power_avg,
+    'efficiency': efficiency,
+    }, indent=2, sort_keys=True)
+
+    print("Sending efficiency data for generator {}...".format(gen_num))
+
+    if AWS_ON:
+        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,recent_time_power), Body=efficiency_json)
+
+    print("Efficiency data sent for generator {}".format(gen_num))
+
+
+
 
 #Open a connection with the generator server asynchonously
 async def get(url, session, gen_num, data_type, s3):
@@ -43,7 +95,9 @@ async def get(url, session, gen_num, data_type, s3):
 
                 print("Power data sent for generator {}".format(gen_num))
 
-                generator_data[url] = []
+                if len(generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)]) >= 6:
+                    process_eff(gen_num, s3)
+
             elif(data_type == 'fuel' and len(generator_data[url]) >= 6):
                 print("Sending fuel data for generator {}...".format(gen_num))
                 json_file = json.dumps(generator_data[url])
@@ -53,7 +107,8 @@ async def get(url, session, gen_num, data_type, s3):
 
                 print("Fuel data sent for generator {}".format(gen_num))
 
-                generator_data[url] = []
+                if len(generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)]) >= 12:
+                    process_eff(gen_num, s3)
 
         return response
 
