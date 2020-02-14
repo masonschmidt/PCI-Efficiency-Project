@@ -14,7 +14,22 @@ class Chart extends Component {
 
     let chart = am4core.create("chartdiv", am4charts.XYChart);
 
-    chart.data = this.props.data;
+    let colorData = this.props.data.slice();
+
+    for (let point of colorData)
+    {
+      if(point['value'] > 20)
+      {
+        const color = '#A9FE36';
+        point['linecolor']  = color;
+      }
+      else {
+        const color = '#F74C15';
+        point['linecolor'] = color;
+      }
+    }
+
+    chart.data = colorData;
 
     // Set input format for the dates
     chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
@@ -39,6 +54,9 @@ class Chart extends Component {
     series.tooltip.label.minHeight = 40;
     series.tooltip.label.textAlign = "middle";
     series.tooltip.label.textValign = "middle";
+    series.fillOpacity = 0.2;
+    series.propertyFields.stroke = "linecolor";
+    series.propertyFields.fill = "linecolor";
 
     // Make bullets grow on hover
     let bullet = series.bullets.push(new am4charts.CircleBullet());
@@ -73,8 +91,17 @@ class Chart extends Component {
 
   componentDidUpdate(oldProps) {
     if (oldProps.data !== this.props.data) {
-      console.log("Update");
-      this.chart.data = this.props.data;
+      const point = this.props.data.slice(this.props.data.length-1)[0];
+      if(point['value'] > 20)
+      {
+        const color = '#A9FE36';
+        point['linecolor']  = color;
+      }
+      else {
+        const color = '#F74C15';
+        point['linecolor'] = color;
+      }
+      this.chart.addData(point, 1);
     }
   }
 
