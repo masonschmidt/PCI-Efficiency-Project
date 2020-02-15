@@ -102,6 +102,7 @@ class Chart extends Component {
         point['linecolor'] = color;
       }
       this.chart.addData(point, 1);
+      console.log(this.chart.data.length);
     }
   }
 

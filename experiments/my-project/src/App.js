@@ -14,20 +14,20 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: this.props.data.slice(0,10),
+      data: this.props.data.slice(0,20),
       start: 0,
-      end: 10,
+      end: 20,
     };
   }
 
   updateData() {
     const end = this.state.end;
     if(end >= this.props.data.length){
-      const data = this.props.data.slice(0,10)
+      const data = this.props.data.slice(0,20)
       this.setState({
         data: data,
         start: 0,
-        end: 10,
+        end: 20,
       });
     }
     else {
