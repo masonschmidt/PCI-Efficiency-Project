@@ -6,7 +6,7 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 
-am4core.useTheme(am4themes_dark);
+//am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
@@ -54,7 +54,7 @@ class Chart extends Component {
     series.tooltip.label.minHeight = 40;
     series.tooltip.label.textAlign = "middle";
     series.tooltip.label.textValign = "middle";
-    series.fillOpacity = 0.2;
+    series.fillOpacity = 0.4;
     series.propertyFields.stroke = "linecolor";
     series.propertyFields.fill = "linecolor";
 
