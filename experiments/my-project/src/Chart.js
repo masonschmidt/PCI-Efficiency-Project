@@ -12,7 +12,7 @@ am4core.useTheme(am4themes_animated);
 class Chart extends Component {
   componentDidMount() {
 
-    let chart = am4core.create("chartdiv", am4charts.XYChart);
+    let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
 
     let colorData = this.props.data.slice();
 
@@ -102,7 +102,6 @@ class Chart extends Component {
         point['linecolor'] = color;
       }
       this.chart.addData(point, 1);
-      console.log(this.chart.data.length);
     }
   }
 
@@ -113,8 +112,9 @@ class Chart extends Component {
   }
 
   render() {
+    console.log(this.props.id);
     return (
-      <div id="chartdiv"></div>
+      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "500px" }}></div>
     );
   }
 }

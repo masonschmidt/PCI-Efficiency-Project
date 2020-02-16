@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Chart from './Chart.js'
+import Charts from './Charts.js'
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
@@ -14,47 +14,16 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: this.props.data.slice(0,20),
-      start: 0,
-      end: 20,
+      data: this.props.data.slice(),
+      numCharts: 4,
     };
   }
 
-  updateData() {
-    const end = this.state.end;
-    if(end >= this.props.data.length){
-      const data = this.props.data.slice(0,20)
-      this.setState({
-        data: data,
-        start: 0,
-        end: 20,
-      });
-    }
-    else {
-      const data = this.props.data.slice(this.state.start + 1,this.state.end + 1)
-      this.setState({
-        data: data,
-        start: this.state.start + 1,
-        end: this.state.end + 1,
-      });
-    }
-  }
-
-  componentDidMount() {
-    this.intervalID = setInterval(
-      () => this.updateData(),
-      5000
-    );
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.intervalID);
-  }
-
-  renderChart() {
+  renderCharts(num) {
     return (
-      <Chart
+      <Charts
         data={this.state.data}
+        numCharts={num}
       />
     );
   }
@@ -62,7 +31,7 @@ class App extends Component {
   render() {
     return (
       <div id="allchartsdiv">
-        {this.renderChart()}
+        {this.renderCharts(this.state.numCharts)}
       </div>
     );
   }
