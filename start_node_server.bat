@@ -1,1 +1,1 @@
-node .\chase-node-testing\generator_model.js
+node .\Generator\generator_model.js
