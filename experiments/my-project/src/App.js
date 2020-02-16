@@ -9,15 +9,15 @@ class App extends Component {
     super(props);
     this.state = {
       data: this.props.data.slice(),
-      numCharts: 4,
+      numCharts: 8,
     };
   }
 
-  renderCharts(num) {
+  renderCharts() {
     return (
       <Charts
         data={this.state.data}
-        numCharts={num}
+        numCharts={this.state.numCharts}
       />
     );
   }
@@ -25,7 +25,7 @@ class App extends Component {
   render() {
     return (
       <div id="allchartsdiv">
-        {this.renderCharts(this.state.numCharts)}
+        {this.renderCharts()}
       </div>
     );
   }

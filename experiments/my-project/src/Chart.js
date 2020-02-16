@@ -38,6 +38,11 @@ class Chart extends Component {
     let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
     let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
+    let title = chart.titles.create();
+    title.text = "Generator: " + this.props.id;
+    title.fontSize = 25;
+    title.marginBottom = 30;
+
     // Create series
     let series = chart.series.push(new am4charts.LineSeries());
     series.dataFields.valueY = "value";
@@ -73,11 +78,6 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create vertical scrollbar and place it before the value axis
-    chart.scrollbarY = new am4core.Scrollbar();
-    chart.scrollbarY.parent = chart.leftAxesContainer;
-    chart.scrollbarY.toBack();
-
     // Create a horizontal scrollbar with previe and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
@@ -112,7 +112,6 @@ class Chart extends Component {
   }
 
   render() {
-    console.log(this.props.id);
     return (
       <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "500px" }}></div>
     );

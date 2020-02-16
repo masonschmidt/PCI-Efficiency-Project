@@ -12,6 +12,7 @@ EFFICIENCY_BUCKET = "pci-effciency-project-test"
 BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 BUCKET_SECRET_ACCESS_KEY = "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"
 EFFICIENCY_CONSTANT = 0.29329722222222
+BASE_URL = 'http://10.206.54.131:3001'
 
 NUMBER_OF_GENERATORS = 2
 
@@ -21,10 +22,10 @@ AWS_ON = False
 generator_data = dict()
 
 def process_eff(gen_num, s3):
-    power_data = generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)]
-    fuel_data = generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)]
-    generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)] = []
-    generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)] = []
+    power_data = generator_data["{}/generator/{}/powerProduced".format(BASE_URL, gen_num)]
+    fuel_data = generator_data["{}/generator/{}/fuelConsumed".format(BASE_URL, gen_num)]
+    generator_data["{}/generator/{}/powerProduced".format(BASE_URL, gen_num)] = []
+    generator_data["{}/generator/{}/fuelConsumed".format(BASE_URL, gen_num)] = []
 
     start_time_power = power_data[0]['time']
     recent_time_power = power_data[11]['time']
@@ -95,7 +96,7 @@ async def get(url, session, gen_num, data_type, s3):
 
                 print("Power data sent for generator {}".format(gen_num))
 
-                if len(generator_data["http://127.0.0.1:3001/generator/{}/fuelConsumed".format(gen_num)]) >= 6:
+                if len(generator_data["{}/generator/{}/fuelConsumed".format(BASE_URL, gen_num)]) >= 6:
                     process_eff(gen_num, s3)
 
             elif(data_type == 'fuel' and len(generator_data[url]) >= 6):
@@ -107,7 +108,7 @@ async def get(url, session, gen_num, data_type, s3):
 
                 print("Fuel data sent for generator {}".format(gen_num))
 
-                if len(generator_data["http://127.0.0.1:3001/generator/{}/powerProduced".format(gen_num)]) >= 12:
+                if len(generator_data["{}/generator/{}/powerProduced".format(BASE_URL, gen_num)]) >= 12:
                     process_eff(gen_num, s3)
 
         return response
@@ -136,8 +137,8 @@ else:
 #Create the coroutines to be run and add them to a list
 coroutines = []
 for i in range(1, NUMBER_OF_GENERATORS+1):
-    power_url = "http://127.0.0.1:3001/generator/{}/powerProduced".format(i)
-    fuel_url = "http://127.0.0.1:3001/generator/{}/fuelConsumed".format(i)
+    power_url = "{}/generator/{}/powerProduced".format(BASE_URL, i)
+    fuel_url = "{}/generator/{}/fuelConsumed".format(BASE_URL, i)
     coroutines.append(get(power_url, session, i, 'power', s3))
     coroutines.append(get(fuel_url, session, i, 'fuel', s3))
 
