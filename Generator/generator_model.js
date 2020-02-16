@@ -18,6 +18,9 @@ const inputTime = 10000;
 const outputTime = 5000;
 const statusTime = 5000;
 const serverSize = 3001;
+const startEfficiency = 0.5;
+const efficiencyJump = 0.25;
+const PowerConstant = 3.409;
 
 var rng = [];
 var input = [];
@@ -43,6 +46,8 @@ for (i = 0; i < serverSize*2; i++){
     connections.push(connection);
     inputEmitters[i] = null;
     outputEmitters[i] = null;
+    output[num] = 0.5;
+    input[num] = 0.5;
   }
 }
 
@@ -69,13 +74,20 @@ setInterval(function() {
 // Helper Functions
 /////////////////////////////////////////////////////////////////////////////////
 function setOutboundEmitter(num) {
-  output[num] = 3.412*rng[num + 3000]();
+  output[num] += (efficiencyJump * 2 * rng[num + 3000]() - efficiencyJump);
+  if(output[num] > input[num])
+    output[num] = input[num];
+  if(output[num] < 0.0)
+    output[num] = 0.0;
+  output[num] = powerConstant * output[num];
   myEmitter.emit('generator output ' + num, arguments.callee);
   return;
 }
 
 function setInboundEmitter(num) {
-  input[num] = rng[num]();
+  input[num] += (efficiencyJump * 2 * rng[num]() - efficiencyJump);
+  if(input[num] < 0.0)
+    input[num] = 0.0;
   myEmitter.emit('generator input ' + num, arguments.callee);
   return;
 }
