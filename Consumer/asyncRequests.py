@@ -48,8 +48,6 @@ def process_eff(gen_num, s3):
 
     efficiency = fuel_avg/(power_avg*EFFICIENCY_CONSTANT)
 
-    print(efficiency)
-
     efficiency_json = json.dumps({
     'generator': gen_num,
     'startTimeFuel': start_time_fuel,
@@ -62,6 +60,8 @@ def process_eff(gen_num, s3):
     'avgPower': power_avg,
     'efficiency': efficiency,
     }, indent=2, sort_keys=True)
+
+    print(efficiency_json)
 
     print("Sending efficiency data for generator {}...".format(gen_num))
 
@@ -91,13 +91,15 @@ async def get(url, gen_num, data_type, s3):
 
                 #Load the received data as a json object (python dict)
                 json_content = json.loads(data)
+
+                print(json_content)
                 #append it to the list in the generator_data dictionary at the url location
                 generator_data[url].append(json_content)
 
                 #prep the data for transport and ship it to aws if the conditions are met
                 if(data_type == 'power' and len(generator_data[url]) >= 12):
                     print("Sending power data for generator {}...".format(gen_num))
-                    json_file = json.dumps(generator_data[url])
+                    json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
                     if AWS_ON:
                         s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
@@ -109,7 +111,7 @@ async def get(url, gen_num, data_type, s3):
 
                 elif(data_type == 'fuel' and len(generator_data[url]) >= 6):
                     print("Sending fuel data for generator {}...".format(gen_num))
-                    json_file = json.dumps(generator_data[url])
+                    json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
                     if AWS_ON:
                         s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)

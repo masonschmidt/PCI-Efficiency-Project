@@ -46,8 +46,8 @@ for (i = 0; i < serverSize*2; i++){
     connections.push(connection);
     inputEmitters[i] = null;
     outputEmitters[i] = null;
-    output[num] = 0.5;
-    input[num] = 0.5;
+    output[i] = 0.5;
+    input[i] = 0.5;
   }
 }
 
@@ -79,7 +79,7 @@ function setOutboundEmitter(num) {
     output[num] = input[num];
   if(output[num] < 0.0)
     output[num] = 0.0;
-  output[num] = powerConstant * output[num];
+  output[num] = PowerConstant * output[num];
   myEmitter.emit('generator output ' + num, arguments.callee);
   return;
 }
