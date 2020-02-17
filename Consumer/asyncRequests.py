@@ -19,7 +19,7 @@ BASE_URL = 'http://127.0.0.1:3001'
 
 NUMBER_OF_GENERATORS = 2
 
-AWS_ON = True
+AWS_ON = False
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
