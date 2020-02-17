@@ -46,7 +46,7 @@ def process_eff(gen_num, s3):
         fuel_total = fuel_total + fuel
     fuel_avg = fuel_total/6
 
-    efficiency = fuel_avg/(power_avg*EFFICIENCY_CONSTANT)
+    efficiency = (power_avg*EFFICIENCY_CONSTANT)/fuel_avg
 
     efficiency_json = json.dumps({
     'generator': gen_num,

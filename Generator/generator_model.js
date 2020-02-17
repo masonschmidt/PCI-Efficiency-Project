@@ -19,7 +19,7 @@ const outputTime = 5000;
 const statusTime = 5000;
 const serverSize = 3001;
 const startEfficiency = 0.5;
-const efficiencyJump = 0.25;
+const efficiencyJump = 0.15;
 const PowerConstant = 3.409;
 
 var rng = [];
@@ -40,7 +40,7 @@ outputEmitters.length = serverSize;
 rng.length = serverSize*2;
 
 for (i = 0; i < serverSize*2; i++){
-  rng[i] = seedrandom(i);
+  rng[i] = new seedrandom(i);
   if(i < serverSize) {
     connection = [];
     connections.push(connection);
@@ -74,11 +74,14 @@ setInterval(function() {
 // Helper Functions
 /////////////////////////////////////////////////////////////////////////////////
 function setOutboundEmitter(num) {
-  output[num] += (efficiencyJump * 2 * rng[num + 3000]() - efficiencyJump);
+  let jump = (efficiencyJump * 2 * rng[num + 3000]() - efficiencyJump);
+  console.log(jump);
+  output[num] += jump;
   if(output[num] > input[num])
-    output[num] = input[num];
-  if(output[num] < 0.0)
-    output[num] = 0.0;
+    output[num] -= jump*2;
+  if(output[num] < 0.0){
+    output[num] = 0.0001;
+  }
   output[num] = PowerConstant * output[num];
   myEmitter.emit('generator output ' + num, arguments.callee);
   return;
@@ -86,8 +89,9 @@ function setOutboundEmitter(num) {
 
 function setInboundEmitter(num) {
   input[num] += (efficiencyJump * 2 * rng[num]() - efficiencyJump);
-  if(input[num] < 0.0)
-    input[num] = 0.0;
+  if(input[num] < 0.0){
+    input[num] = 0.0001;
+  }
   myEmitter.emit('generator input ' + num, arguments.callee);
   return;
 }
@@ -140,7 +144,7 @@ function setFuelInformation(req, res, num){
   if (queries == null){
     data.generator = num;
     data.time = new Date().toISOString();
-    data.fuelConsumed = input[num]*3.4;
+    data.fuelConsumed = input[num];
     sendResponse(res, data, true);
     return;
   }
