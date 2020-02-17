@@ -3,6 +3,9 @@ import asyncio
 import json
 import boto3
 import time
+import dateutil.parser
+from datetime import datetime
+from datetime import timezone
 from botocore.client import Config
 
 #Constansts for use later.
@@ -16,7 +19,7 @@ BASE_URL = 'http://127.0.0.1:3001'
 
 NUMBER_OF_GENERATORS = 2
 
-AWS_ON = False
+AWS_ON = True
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -61,8 +64,6 @@ def process_eff(gen_num, s3):
     'efficiency': efficiency,
     }, indent=2, sort_keys=True)
 
-    print(efficiency_json)
-
     print("Sending efficiency data for generator {}...".format(gen_num))
 
     if AWS_ON:
@@ -92,7 +93,6 @@ async def get(url, gen_num, data_type, s3):
                 #Load the received data as a json object (python dict)
                 json_content = json.loads(data)
 
-                print(json_content)
                 #append it to the list in the generator_data dictionary at the url location
                 generator_data[url].append(json_content)
 
@@ -101,8 +101,12 @@ async def get(url, gen_num, data_type, s3):
                     print("Sending power data for generator {}...".format(gen_num))
                     json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
+                    timestamp = dateutil.parser.parse(json_content['time'])
+
+                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+
                     if AWS_ON:
-                        s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                        s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
 
                     print("Power data sent for generator {}".format(gen_num))
 
@@ -113,8 +117,12 @@ async def get(url, gen_num, data_type, s3):
                     print("Sending fuel data for generator {}...".format(gen_num))
                     json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
+                    timestamp = dateutil.parser.parse(json_content['time'])
+
+                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+
                     if AWS_ON:
-                        s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                        s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
 
                     print("Fuel data sent for generator {}".format(gen_num))
 

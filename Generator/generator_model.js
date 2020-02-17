@@ -77,10 +77,10 @@ function setOutboundEmitter(num) {
   let jump = (efficiencyJump * 2 * rng[num + 3000]() - efficiencyJump);
   console.log(jump);
   output[num] += jump;
-  if(output[num] > input[num])
-    output[num] -= jump*2;
-  if(output[num] < 0.0){
-    output[num] = 0.0001;
+  if(output[num] >= input[num])
+    output[num] = input[num] - ((jump + efficiencyJump)/1.9);
+  if(output[num] < 0.01){
+    output[num] = 0.01;
   }
   output[num] = PowerConstant * output[num];
   myEmitter.emit('generator output ' + num, arguments.callee);
@@ -89,8 +89,11 @@ function setOutboundEmitter(num) {
 
 function setInboundEmitter(num) {
   input[num] += (efficiencyJump * 2 * rng[num]() - efficiencyJump);
-  if(input[num] < 0.0){
-    input[num] = 0.0001;
+  if(input[num] < 0.05){
+    input[num] = 0.05;
+  }
+  else if (input[num] >= 1.0) {
+    input[num] = 1.0 - (efficiencyJump * rng[num]());
   }
   myEmitter.emit('generator input ' + num, arguments.callee);
   return;
