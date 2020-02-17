@@ -75,7 +75,6 @@ setInterval(function() {
 /////////////////////////////////////////////////////////////////////////////////
 function setOutboundEmitter(num) {
   let jump = (efficiencyJump * 2 * rng[num + 3000]() - efficiencyJump);
-  console.log(jump);
   output[num] += jump;
   if(output[num] >= input[num])
     output[num] = input[num] - ((jump + efficiencyJump)/1.9);

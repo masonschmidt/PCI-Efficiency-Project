@@ -20,6 +20,7 @@ BASE_URL = 'http://127.0.0.1:3001'
 NUMBER_OF_GENERATORS = 2
 
 AWS_ON = False
+AWS_EFF_ON = False
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -66,8 +67,12 @@ def process_eff(gen_num, s3):
 
     print("Sending efficiency data for generator {}...".format(gen_num))
 
-    if AWS_ON:
-        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,recent_time_power), Body=efficiency_json)
+    timestamp = dateutil.parser.parse(recent_time_power)
+
+    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+
+    if AWS_ON or AWS_EFF_ON:
+        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num, timestamp), Body=efficiency_json)
 
     print("Efficiency data sent for generator {}".format(gen_num))
 
@@ -136,7 +141,7 @@ async def get(url, gen_num, data_type, s3):
 loop = asyncio.ProactorEventLoop()
 asyncio.set_event_loop(loop)
 
-if AWS_ON:
+if AWS_ON or AWS_EFF_ON:
     s3 = boto3.resource( 's3',
         aws_access_key_id=BUCKET_ACCESS_KEY,
         aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
