@@ -5,6 +5,19 @@ import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
+import AWS from "aws-sdk";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Configure aws with your accessKeyId and your secretAccessKey
+AWS.config.update({
+  region: 'US West Oregon', // Put your aws region here
+  accessKeyId: process.env.aws_access_key_id,
+  secretAccessKey: process.env.aws_secret_access_key
+})
+
+const S3_BUCKET = process.env.efficiency_bucket;
 
 //am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
@@ -13,6 +26,57 @@ class Chart extends Component {
   componentDidMount() {
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
+
+    AWS.config.getCredentials(function(err) {
+      if (err) console.log(err.stack);
+      // credentials not loaded
+      else {
+        console.log("Access key:", AWS.config.credentials.accessKeyId);
+        console.log("Secret access key:", AWS.config.credentials.secretAccessKey);
+      }
+    });
+
+    // Create S3 service object
+    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+    let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
+
+    let data = [];
+
+    // Create the parameters for calling listObjects
+    var bucketParams = {
+      Bucket : S3_BUCKET,
+      Prefix : 'generator' + genNum,
+    };
+
+    // Call S3 to obtain a list of the objects in the bucket
+    s3.listObjectsV2(bucketParams, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success");
+
+        for (let file in data['Contents']){
+
+          let keyToGet = file['Key'];
+
+          var params = {
+            Bucket: S3_BUCKET,
+            Key: keyToGet,
+          };
+
+          s3.getObject(params, function(err, objectData) {
+             if (err) {
+               console.log(err, err.stack); // an error occurred
+             }
+             else {
+                console.log(JSON.parse(objectData.Body.toString('ascii'))); // successful response
+                data.push(JSON.parse(objectData.Body.toString('ascii')));
+             }
+         });
+       }
+      }
+    });
 
     let colorData = this.props.data.slice();
 

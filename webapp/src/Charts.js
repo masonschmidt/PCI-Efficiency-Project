@@ -58,7 +58,7 @@ class Charts extends Component {
     let items = []
     for(var i = 1; i <= this.props.numCharts; i++){
       items.push(
-        <div id={i}>
+        <div id={i} key={i}>
           {this.renderChart(i)}
         </div>
       );
