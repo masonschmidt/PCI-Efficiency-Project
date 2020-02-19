@@ -23,6 +23,67 @@ const S3_BUCKET = 'pci-effciency-project-test';
 am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
+  let lastKey = '';
+
+  updateData() {
+    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+    let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
+
+    let bucketParams = {
+      Bucket : S3_BUCKET,
+      Prefix : 'generator' + genNum,
+      StartAfter: lastKey,
+    };
+
+    let chartData
+
+    // Call S3 to obtain a list of the objects in the bucket
+    s3.listObjectsV2(bucketParams, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", data);
+
+        for (let i = 0; i < data.Contents.length; i++){
+
+          let keyToGet = data.Contents[i].Key;
+
+          let params = {
+            Bucket: S3_BUCKET,
+            Key: keyToGet,
+          };
+
+          s3.getObject(params, function(err, objectData) {
+             if (err) {
+               console.log(err, err.stack); // an error occurred
+             }
+             else {
+               // successful response
+                chartData.push(JSON.parse(objectData.Body.toString('ascii')));
+                for (let point of chartData)
+                {
+                  if(point['efficiency'] > 0.7)
+                  {
+                    const color = '#A9FE36';
+                    point['linecolor']  = color;
+                  }
+                  else {
+                    const color = '#F74C15';
+                    point['linecolor'] = color;
+                  }
+                }
+                let sortedData = chartData.sort((a,b) => new Date(b.recentTimePower) - new Date(a.recentTimePower));
+                chart.data.addData(sortedData.length(), sortedData);
+                lastKey = sortedData[sortedData.length-1];
+             }
+         });
+
+       }
+      }
+    });
+  }
+
   componentDidMount() {
 
     let s3 = new AWS.S3({apiVersion: '2006-03-01'});
@@ -67,7 +128,6 @@ class Chart extends Component {
                 chartData.push(JSON.parse(objectData.Body.toString('ascii')));
                 for (let point of chartData)
                 {
-                  console.log(point);
                   if(point['efficiency'] > 0.7)
                   {
                     const color = '#A9FE36';
@@ -80,6 +140,7 @@ class Chart extends Component {
                 }
                 let sortedData = chartData.sort((a,b) => new Date(b.recentTimePower) - new Date(a.recentTimePower));
                 chart.data = sortedData;
+                lastKey = sortedData[sortedData.length-1];
              }
          });
 
@@ -153,6 +214,13 @@ class Chart extends Component {
 
     this.chart = chart;
   }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      this.updateData();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   componentDidUpdate(oldProps) {
     /*
