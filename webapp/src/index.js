@@ -2,10 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import chartData from './testData.json';
 import * as serviceWorker from './serviceWorker';
 
-ReactDOM.render(<App data={chartData}/>, document.getElementById('root'));
+ReactDOM.render(<App />, document.getElementById('root'));
 
 
 

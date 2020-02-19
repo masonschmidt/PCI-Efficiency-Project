@@ -1,23 +1,22 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './Chart.css';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
-import dotenv from "dotenv";
 
-dotenv.config();
+const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
+const BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
 
 // Configure aws with your accessKeyId and your secretAccessKey
 AWS.config.update({
-  region: 'US West Oregon', // Put your aws region here
-  accessKeyId: process.env.aws_access_key_id,
-  secretAccessKey: process.env.aws_secret_access_key
+  region: 'us-west-2', // Put your aws region here
+  accessKeyId: BUCKET_ACCESS_KEY,
+  secretAccessKey: BUCKET_SECRET_ACCESS_KEY
 })
 
-const S3_BUCKET = process.env.efficiency_bucket;
+const S3_BUCKET = 'pci-effciency-project-test';
 
 //am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
@@ -25,26 +24,19 @@ am4core.useTheme(am4themes_animated);
 class Chart extends Component {
   componentDidMount() {
 
+    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
 
-    AWS.config.getCredentials(function(err) {
-      if (err) console.log(err.stack);
-      // credentials not loaded
-      else {
-        console.log("Access key:", AWS.config.credentials.accessKeyId);
-        console.log("Secret access key:", AWS.config.credentials.secretAccessKey);
-      }
-    });
-
     // Create S3 service object
-    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+    //let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
 
     let data = [];
 
     // Create the parameters for calling listObjects
-    var bucketParams = {
+    let bucketParams = {
       Bucket : S3_BUCKET,
       Prefix : 'generator' + genNum,
     };
@@ -60,7 +52,7 @@ class Chart extends Component {
 
           let keyToGet = file['Key'];
 
-          var params = {
+          let params = {
             Bucket: S3_BUCKET,
             Key: keyToGet,
           };
@@ -78,11 +70,9 @@ class Chart extends Component {
       }
     });
 
-    let colorData = this.props.data.slice();
-
-    for (let point of colorData)
+    for (let point of data)
     {
-      if(point['value'] > 20)
+      if(point['efficiency'] > 0.7)
       {
         const color = '#A9FE36';
         point['linecolor']  = color;
@@ -93,10 +83,10 @@ class Chart extends Component {
       }
     }
 
-    chart.data = colorData;
+    chart.data = data;
 
     // Set input format for the dates
-    chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
+    //chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
 
     // Create axes
     let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
@@ -109,9 +99,9 @@ class Chart extends Component {
 
     // Create series
     let series = chart.series.push(new am4charts.LineSeries());
-    series.dataFields.valueY = "value";
-    series.dataFields.dateX = "date";
-    series.tooltipText = "{value}"
+    series.dataFields.valueY = "efficiency";
+    series.dataFields.dateX = "recentTimePower";
+    series.tooltipText = "{efficiency}"
     series.strokeWidth = 2;
     series.minBulletDistance = 15;
 
@@ -154,6 +144,7 @@ class Chart extends Component {
   }
 
   componentDidUpdate(oldProps) {
+    /*
     if (oldProps.data !== this.props.data) {
       const point = this.props.data.slice(this.props.data.length-1)[0];
       if(point['value'] > 20)
@@ -167,6 +158,7 @@ class Chart extends Component {
       }
       this.chart.addData(point, 1);
     }
+    */
   }
 
   componentWillUnmount() {
