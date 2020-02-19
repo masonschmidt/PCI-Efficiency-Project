@@ -19,19 +19,50 @@ AWS.config.update({
 
 const S3_BUCKET = 'pci-effciency-project-test';
 
+async function s3List(params, s3) {
+  // Call S3 to obtain a list of the objects in the bucket
+  return new Promise((resolve, reject) => {
+    s3.listObjectsV2(params, (err, data) => {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        if ( err ) reject(err)
+        else {
+          resolve(data);
+        }
+      }
+    });
+  });
+}
+
+async function s3Get(params, s3) {
+  // Call S3 to obtain a list of the objects in the bucket
+  return new Promise((resolve, reject) => {
+    s3.getObject(params, (err, data) => {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        if ( err ) reject(err)
+        else {
+          resolve(data);
+        }
+      }
+    });
+  });
+}
+
 //am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
-  updateData() {
+  async updateData() {
     let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
-    let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
-
-    // Create S3 service object
-    //let s3 = new AWS.S3({apiVersion: '2006-03-01'});
-
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
+
+    let chartData = [];
 
     let bucketParams = {
       Bucket : S3_BUCKET,
@@ -39,67 +70,100 @@ class Chart extends Component {
       StartAfter: this.lastKey,
     };
 
-    let chartData = [];
+    let promise = s3List(bucketParams, s3);
 
-    // Call S3 to obtain a list of the objects in the bucket
-    s3.listObjectsV2(bucketParams, function(err, data) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
+    let data = await promise;
 
-        for (let i = 0; i < data.Contents.length; i++){
+    for (let i = 0; i < data.Contents.length; i++){
 
-          let keyToGet = data.Contents[i].Key;
+      let keyToGet = data.Contents[i].Key;
 
-          let params = {
-            Bucket: S3_BUCKET,
-            Key: keyToGet,
-          };
+      let params = {
+        Bucket: S3_BUCKET,
+        Key: keyToGet,
+      };
 
-          s3.getObject(params, function(err, objectData) {
-             if (err) {
-               console.log(err, err.stack); // an error occurred
-             }
-             else {
-               // successful response
-                chartData.push(JSON.parse(objectData.Body.toString('ascii')));
-                for (let point of chartData)
-                {
-                  if(point['efficiency'] > 0.7)
-                  {
-                    const color = '#A9FE36';
-                    point['linecolor']  = color;
-                  }
-                  else {
-                    const color = '#F74C15';
-                    point['linecolor'] = color;
-                  }
-                }
-                let sortedData = chartData.sort((a,b) => new Date(b.recentTimePower) - new Date(a.recentTimePower));
-                this.chart.data.addData(sortedData.length(), sortedData);
-                this.lastKey = sortedData[sortedData.length-1];
-             }
-         });
+      let request = await s3Get(params, s3);
 
-       }
+      let point = JSON.parse(request.Body.toString('ascii'));
+
+      if(point['efficiency'] > 0.7)
+      {
+        const color = '#A9FE36';
+        point['linecolor']  = color;
       }
-    });
+      else {
+        const color = '#F74C15';
+        point['linecolor'] = color;
+      }
+      point['Key'] = keyToGet;
+
+      chartData.push(point);
+
+   }
+
+    let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
+
+    this.chart.addData(sortedData, sortedData.length - 1);
+
+    this.lastKey = sortedData[sortedData.length-1]['Key'];
+
   }
 
-  componentDidMount() {
-    this.lastKey = '';
+  async componentDidMount() {
 
     let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
-    let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
-
-    // Create S3 service object
-    //let s3 = new AWS.S3({apiVersion: '2006-03-01'});
-
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
 
+    //let data;
+
     let chartData = [];
+
+    let bucketParams = {
+      Bucket : S3_BUCKET,
+      Prefix : 'generator' + genNum,
+    };
+
+    let promise = s3List(bucketParams, s3);
+
+    let data = await promise;
+
+    for (let i = 0; i < 15; i++){
+
+      let keyToGet = data.Contents[i].Key;
+
+      let params = {
+        Bucket: S3_BUCKET,
+        Key: keyToGet,
+      };
+
+      let request = await s3Get(params, s3);
+
+      let point = JSON.parse(request.Body.toString('ascii'));
+
+      if(point['efficiency'] > 0.7)
+      {
+        const color = '#A9FE36';
+        point['linecolor']  = color;
+      }
+      else {
+        const color = '#F74C15';
+        point['linecolor'] = color;
+      }
+      point['Key'] = keyToGet;
+
+      chartData.push(point);
+
+   }
+
+    let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
+
+    this.lastKey = sortedData[sortedData.length-1]['Key'];
+
+    let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
+
+    chart.data = sortedData;
 
     // Set input format for the dates
     chart.dateFormatter.inputDateFormat = "i";
@@ -160,61 +224,14 @@ class Chart extends Component {
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
 
+    valueAxis.min = 0.0;
+    valueAxis.max = 1.0;
+    valueAxis.strictMinMax = false;
+
     dateAxis.start = 0.50;
     dateAxis.keepSelection = true;
 
     this.chart = chart;
-
-    // Create the parameters for calling listObjects
-    let bucketParams = {
-      Bucket : S3_BUCKET,
-      Prefix : 'generator' + genNum,
-    };
-
-    // Call S3 to obtain a list of the objects in the bucket
-    s3.listObjectsV2(bucketParams, function(err, data) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
-
-        for (let i = 0; i < 15; i++){
-
-          let keyToGet = data.Contents[i].Key;
-
-          let params = {
-            Bucket: S3_BUCKET,
-            Key: keyToGet,
-          };
-
-          s3.getObject(params, function(err, objectData) {
-             if (err) {
-               console.log(err, err.stack); // an error occurred
-             }
-             else {
-               // successful response
-                chartData.push(JSON.parse(objectData.Body.toString('ascii')));
-                for (let point of chartData)
-                {
-                  if(point['efficiency'] > 0.7)
-                  {
-                    const color = '#A9FE36';
-                    point['linecolor']  = color;
-                  }
-                  else {
-                    const color = '#F74C15';
-                    point['linecolor'] = color;
-                  }
-                }
-                let sortedData = chartData.sort((a,b) => new Date(b.recentTimePower) - new Date(a.recentTimePower));
-                chart.data = sortedData;
-                this.lastKey = sortedData[sortedData.length-1];
-             }
-         });
-
-       }
-      }
-    });
 
     const interval = setInterval(() => {
       this.updateData();
