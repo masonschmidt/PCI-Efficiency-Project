@@ -265,7 +265,7 @@ class Chart extends Component {
 
   render() {
     return (
-      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "500px" }}></div>
+      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "365px" }}></div>
     );
   }
 }
