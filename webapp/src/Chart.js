@@ -10,6 +10,7 @@ const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 const BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
 
 // Configure aws with your accessKeyId and your secretAccessKey
+
 AWS.config.update({
   region: 'us-west-2', // Put your aws region here
   accessKeyId: BUCKET_ACCESS_KEY,
@@ -33,7 +34,7 @@ class Chart extends Component {
 
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
 
-    let data = [];
+    let chartData = [];
 
     // Create the parameters for calling listObjects
     let bucketParams = {
@@ -46,11 +47,11 @@ class Chart extends Component {
       if (err) {
         console.log("Error", err);
       } else {
-        console.log("Success");
+        console.log("Success", data);
 
-        for (let file in data['Contents']){
+        for (let i = 0; i < data.Contents.length; i++){
 
-          let keyToGet = file['Key'];
+          let keyToGet = data.Contents[i].Key;
 
           let params = {
             Bucket: S3_BUCKET,
@@ -62,34 +63,44 @@ class Chart extends Component {
                console.log(err, err.stack); // an error occurred
              }
              else {
-                console.log(JSON.parse(objectData.Body.toString('ascii'))); // successful response
-                data.push(JSON.parse(objectData.Body.toString('ascii')));
+               // successful response
+                chartData.push(JSON.parse(objectData.Body.toString('ascii')));
+                for (let point of chartData)
+                {
+                  console.log(point);
+                  if(point['efficiency'] > 0.7)
+                  {
+                    const color = '#A9FE36';
+                    point['linecolor']  = color;
+                  }
+                  else {
+                    const color = '#F74C15';
+                    point['linecolor'] = color;
+                  }
+                }
+                let sortedData = chartData.sort((a,b) => new Date(b.recentTimePower) - new Date(a.recentTimePower));
+                chart.data = sortedData;
              }
          });
+
        }
       }
     });
 
-    for (let point of data)
-    {
-      if(point['efficiency'] > 0.7)
-      {
-        const color = '#A9FE36';
-        point['linecolor']  = color;
-      }
-      else {
-        const color = '#F74C15';
-        point['linecolor'] = color;
-      }
-    }
 
-    chart.data = data;
 
     // Set input format for the dates
-    //chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
+    chart.dateFormatter.inputDateFormat = "i";
 
     // Create axes
     let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+
+    dateAxis.baseInterval = {
+      "timeUnit": "minute",
+      "count": 1
+    };
+    dateAxis.tooltipDateFormat = "HH:mm, d MMMM";
+
     let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
     let title = chart.titles.create();
