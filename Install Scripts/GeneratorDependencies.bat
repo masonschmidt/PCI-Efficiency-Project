@@ -1,4 +1,5 @@
 cd ..\Generator
-npm install express
-npm install seedrandom
-npm install connect-timeout
+CALL npm init -y
+CALL npm install express
+CALL npm install seedrandom
+CALL npm install connect-timeout
