@@ -3,6 +3,9 @@ import asyncio
 import json
 import boto3
 import time
+import dateutil.parser
+from datetime import datetime
+from datetime import timezone
 from botocore.client import Config
 
 #Constansts for use later.
@@ -17,6 +20,7 @@ BASE_URL = 'http://127.0.0.1:3001'
 NUMBER_OF_GENERATORS = 2
 
 AWS_ON = False
+AWS_EFF_ON = False
 
 #Dictionary to store data using the url as the key
 generator_data = dict()
@@ -46,9 +50,7 @@ def process_eff(gen_num, s3):
         fuel_total = fuel_total + fuel
     fuel_avg = fuel_total/6
 
-    efficiency = fuel_avg/(power_avg*EFFICIENCY_CONSTANT)
-
-    print(efficiency)
+    efficiency = (power_avg*EFFICIENCY_CONSTANT)/fuel_avg
 
     efficiency_json = json.dumps({
     'generator': gen_num,
@@ -65,8 +67,12 @@ def process_eff(gen_num, s3):
 
     print("Sending efficiency data for generator {}...".format(gen_num))
 
-    if AWS_ON:
-        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,recent_time_power), Body=efficiency_json)
+    timestamp = dateutil.parser.parse(recent_time_power)
+
+    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+
+    if AWS_ON or AWS_EFF_ON:
+        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num, timestamp), Body=efficiency_json)
 
     print("Efficiency data sent for generator {}".format(gen_num))
 
@@ -91,16 +97,21 @@ async def get(url, gen_num, data_type, s3):
 
                 #Load the received data as a json object (python dict)
                 json_content = json.loads(data)
+
                 #append it to the list in the generator_data dictionary at the url location
                 generator_data[url].append(json_content)
 
                 #prep the data for transport and ship it to aws if the conditions are met
                 if(data_type == 'power' and len(generator_data[url]) >= 12):
                     print("Sending power data for generator {}...".format(gen_num))
-                    json_file = json.dumps(generator_data[url])
+                    json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
+
+                    timestamp = dateutil.parser.parse(json_content['time'])
+
+                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
 
                     if AWS_ON:
-                        s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                        s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
 
                     print("Power data sent for generator {}".format(gen_num))
 
@@ -109,10 +120,14 @@ async def get(url, gen_num, data_type, s3):
 
                 elif(data_type == 'fuel' and len(generator_data[url]) >= 6):
                     print("Sending fuel data for generator {}...".format(gen_num))
-                    json_file = json.dumps(generator_data[url])
+                    json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
+
+                    timestamp = dateutil.parser.parse(json_content['time'])
+
+                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
 
                     if AWS_ON:
-                        s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,json_content['time']), Body=json_file)
+                        s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
 
                     print("Fuel data sent for generator {}".format(gen_num))
 
@@ -126,7 +141,7 @@ async def get(url, gen_num, data_type, s3):
 loop = asyncio.ProactorEventLoop()
 asyncio.set_event_loop(loop)
 
-if AWS_ON:
+if AWS_ON or AWS_EFF_ON:
     s3 = boto3.resource( 's3',
         aws_access_key_id=BUCKET_ACCESS_KEY,
         aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
