@@ -65,6 +65,8 @@ def process_eff(gen_num, s3):
     'efficiency': efficiency,
     }, indent=2, sort_keys=True)
 
+    print(efficiency_json)
+
     print("Sending efficiency data for generator {}...".format(gen_num))
 
     timestamp = dateutil.parser.parse(recent_time_power)

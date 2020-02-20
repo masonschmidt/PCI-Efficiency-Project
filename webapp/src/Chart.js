@@ -129,7 +129,7 @@ class Chart extends Component {
 
     let data = await promise;
 
-    for (let i = 0; i < 15; i++){
+    for (let i = 0; i < data.Contents.length; i++){
 
       let keyToGet = data.Contents[i].Key;
 
