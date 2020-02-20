@@ -74,6 +74,10 @@ class Chart extends Component {
 
     let data = await promise;
 
+    if (data.length == 0) {
+      return;
+    }
+
     for (let i = 0; i < data.Contents.length; i++){
 
       let keyToGet = data.Contents[i].Key;
