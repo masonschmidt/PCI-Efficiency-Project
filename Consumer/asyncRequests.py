@@ -25,6 +25,23 @@ AWS_EFF_ON = False
 #Dictionary to store data using the url as the key
 generator_data = dict()
 
+def create_key(gen_num, time):
+    timestamp = dateutil.parser.parse(time)
+
+    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+
+    return 'generator{:04d}/{}.json'.format(gen_num, timestamp)
+
+def create_average(data, key):
+    avg = 0
+    total = 0
+    for data_point in data:
+        power = data_point[key]
+        total = total + power
+    avg = total/len(data)
+    return avg
+
+
 def process_eff(gen_num, s3):
     power_data = generator_data["{}/generator/{}/powerProduced".format(BASE_URL, gen_num)]
     fuel_data = generator_data["{}/generator/{}/fuelConsumed".format(BASE_URL, gen_num)]
@@ -36,19 +53,9 @@ def process_eff(gen_num, s3):
     start_time_fuel = fuel_data[0]['time']
     recent_time_fuel = fuel_data[5]['time']
 
-    power_avg = 0
-    power_total = 0
-    for data_point in power_data:
-        power = data_point['powerProduced']
-        power_total = power_total + power
-    power_avg = power_total/12
+    power_avg = create_average(power_data, 'powerProduced')
 
-    fuel_avg = 0
-    fuel_total = 0
-    for data_point in fuel_data:
-        fuel = data_point['fuelConsumed']
-        fuel_total = fuel_total + fuel
-    fuel_avg = fuel_total/6
+    fuel_avg = create_average(power_data, 'fuelConsumed')
 
     efficiency = (power_avg*EFFICIENCY_CONSTANT)/fuel_avg
 
@@ -69,12 +76,10 @@ def process_eff(gen_num, s3):
 
     print("Sending efficiency data for generator {}...".format(gen_num))
 
-    timestamp = dateutil.parser.parse(recent_time_power)
-
-    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+    key = create_key(gen_num, recent_time_power)
 
     if AWS_ON or AWS_EFF_ON:
-        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num, timestamp), Body=efficiency_json)
+        s3.Bucket(EFFICIENCY_BUCKET).put_object(Key=key, Body=efficiency_json)
 
     print("Efficiency data sent for generator {}".format(gen_num))
 
@@ -108,12 +113,10 @@ async def get(url, gen_num, data_type, s3):
                     print("Sending power data for generator {}...".format(gen_num))
                     json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
-                    timestamp = dateutil.parser.parse(json_content['time'])
-
-                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+                    key = create_key(time, json_content['time'])
 
                     if AWS_ON:
-                        s3.Bucket(POWER_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
+                        s3.Bucket(POWER_BUCKET).put_object(Key=key, Body=json_file)
 
                     print("Power data sent for generator {}".format(gen_num))
 
@@ -124,12 +127,10 @@ async def get(url, gen_num, data_type, s3):
                     print("Sending fuel data for generator {}...".format(gen_num))
                     json_file = json.dumps(generator_data[url], indent=2, sort_keys=True)
 
-                    timestamp = dateutil.parser.parse(json_content['time'])
-
-                    timestamp = timestamp.strftime("%Y-%m-%d %H:%M")
+                    key = create_key(time, json_content['time'])
 
                     if AWS_ON:
-                        s3.Bucket(FUEL_BUCKET).put_object(Key='generator{:04d}/{}.json'.format(gen_num,timestamp), Body=json_file)
+                        s3.Bucket(FUEL_BUCKET).put_object(Key=key, Body=json_file)
 
                     print("Fuel data sent for generator {}".format(gen_num))
 
@@ -138,27 +139,29 @@ async def get(url, gen_num, data_type, s3):
 
             return response
 
-#Create a loop for the asyncio library (this one is specific for windows
-#because windows only allows 64 simultaneously open ports)
-loop = asyncio.ProactorEventLoop()
-asyncio.set_event_loop(loop)
 
-if AWS_ON or AWS_EFF_ON:
-    s3 = boto3.resource( 's3',
-        aws_access_key_id=BUCKET_ACCESS_KEY,
-        aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
-        config=Config(signature_version='s3v4')
-    )
-else:
-    s3 = ''
+if __name__ == '__main__':
+    #Create a loop for the asyncio library (this one is specific for windows
+    #because windows only allows 64 simultaneously open ports)
+    loop = asyncio.ProactorEventLoop()
+    asyncio.set_event_loop(loop)
 
-#Create the coroutines to be run and add them to a list
-coroutines = []
-for i in range(1, NUMBER_OF_GENERATORS+1):
-    power_url = "{}/generator/{}/powerProduced".format(BASE_URL, i)
-    fuel_url = "{}/generator/{}/fuelConsumed".format(BASE_URL, i)
-    coroutines.append(get(power_url, i, 'power', s3))
-    coroutines.append(get(fuel_url, i, 'fuel', s3))
+    if AWS_ON or AWS_EFF_ON:
+        s3 = boto3.resource( 's3',
+            aws_access_key_id=BUCKET_ACCESS_KEY,
+            aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
+            config=Config(signature_version='s3v4')
+        )
+    else:
+        s3 = ''
 
-#run all the coroutines
-results = loop.run_until_complete(asyncio.gather(*coroutines))
+    #Create the coroutines to be run and add them to a list
+    coroutines = []
+    for i in range(1, NUMBER_OF_GENERATORS+1):
+        power_url = "{}/generator/{}/powerProduced".format(BASE_URL, i)
+        fuel_url = "{}/generator/{}/fuelConsumed".format(BASE_URL, i)
+        coroutines.append(get(power_url, i, 'power', s3))
+        coroutines.append(get(fuel_url, i, 'fuel', s3))
+
+    #run all the coroutines
+    results = loop.run_until_complete(asyncio.gather(*coroutines))
