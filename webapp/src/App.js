@@ -7,7 +7,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      numCharts: 4,
+      numCharts: 3,
     };
   }
 
