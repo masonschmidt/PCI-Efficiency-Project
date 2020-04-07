@@ -11,13 +11,13 @@ class Charts extends Component {
     );
   }
 
-  renderCharts(numCharts)
+  renderCharts(generators)
   {
     let items = []
-    for(var i = 1; i <= this.props.numCharts; i++){
+    for(var i = 0; i < this.props.generators.length; i++){
       items.push(
-        <div id={i} key={i}>
-          {this.renderChart(i)}
+        <div id={this.props.generators[i]} key={this.props.generators[i]}>
+          {this.renderChart(this.props.generators[i])}
         </div>
       );
     }
@@ -27,7 +27,7 @@ class Charts extends Component {
   render() {
     return (
       <div id="allchartsdiv">
-        {this.renderCharts(this.props.numCharts)}
+        {this.renderCharts(this.props.generators)}
       </div>
     );
   }
