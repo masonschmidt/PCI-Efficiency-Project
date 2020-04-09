@@ -6,7 +6,7 @@ import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
 
-const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
+/*const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
 const BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
 
 // Configure aws with your accessKeyId and your secretAccessKey
@@ -51,13 +51,13 @@ async function s3Get(params, s3) {
       }
     });
   });
-}
+}*/
 
 //am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
-  async updateData() {
+  /*async updateData() {
     let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
@@ -110,20 +110,20 @@ class Chart extends Component {
 
     this.chart.addData(sortedData, sortedData.length - 1);
 
-    this.lastKey = sortedData[sortedData.length-1]['Key'];
+    //this.lastKey = sortedData[sortedData.length-1]['Key'];
 
-  }
+  }*/
 
   async componentDidMount() {
 
-    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+    /*let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
     let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
 
     //let data;
-
+    */
     let chartData = [];
-
+    /*
     let bucketParams = {
       Bucket : S3_BUCKET,
       Prefix : 'generator' + genNum,
@@ -155,19 +155,22 @@ class Chart extends Component {
         const color = '#F74C15';
         point['linecolor'] = color;
       }
-      point['Key'] = keyToGet;
-
+      point['Key'] = keyToGet;*/
+    for (let i = 0; i < 5; i++){
+      let point = {};
+      point['x'] = Date.now();
+      point['y'] = 2;
+      point['linecolor'] = '#A9FE36';
       chartData.push(point);
+    }
 
-   }
+    //let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
 
-    let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
-
-    this.lastKey = sortedData[sortedData.length-1]['Key'];
+    //this.lastKey = sortedData[sortedData.length-1]['Key'];
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
 
-    chart.data = sortedData;
+    chart.data = chartData;
 
     // Set input format for the dates
     chart.dateFormatter.inputDateFormat = "i";
@@ -237,13 +240,13 @@ class Chart extends Component {
 
     this.chart = chart;
 
-    const interval = setInterval(() => {
+    /*const interval = setInterval(() => {
       this.updateData();
-    }, 60000);
+    }, 60000);*/
   }
 
   componentDidUpdate(oldProps) {
-    /*
+  /*
     if (oldProps.data !== this.props.data) {
       const point = this.props.data.slice(this.props.data.length-1)[0];
       if(point['value'] > 20)
