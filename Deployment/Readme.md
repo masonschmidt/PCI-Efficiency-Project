@@ -49,6 +49,36 @@ The connection locations for input and output can be changed by editing
 
 ###  
 
-## Deploying AWS Data Repository with DynamoDB
+## Deploying AWS Data Repository with AWS S3
+### Create S3 buckets 
+	Go to : https://us-east-2.console.aws.amazon.com/console/home?region=us-east-2
+	From top click on “Services”
+	From Storage click on S3 
+	From S3 page
+	  Click on “Create Bucket”
+	  Choose bucket name and click on “Create Bucket”
+### Setting up Bucket permissions 
+	Click on created bucket 
+	Go to “Permissions”
+	Go to “Bucket Policy”
+	Add bucket policy and save  – see example below 
+add image here
+	Go to CORS configuration 
+	See example below 
+add image here 
+### Setting up Identity and Access management (IAM)
+  Go to : https://us-east-2.console.aws.amazon.com/console/home?region=us-east-2
+  From top click on “Services”
+  From Security, Identity, & Compliance click on IAM
+  From the sidebar click on Users  
+  Click on Add user 
+  Choose user name 
+  From access type: check Programmatic access
+  Click Next 
+  From set permissions click on Attach existing policies directly
+  Choose access types: choose AdministratorAccess 
+  Click Next 
+  Skip add tags and click on Next
+  Click on Create user 
 
 ## Deploying a React Front End
