@@ -226,7 +226,7 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create a horizontal scrollbar with previe and place it underneath the date axis
+    // Create a horizontal scrollbar with preview and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
