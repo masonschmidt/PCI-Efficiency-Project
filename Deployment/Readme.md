@@ -68,7 +68,21 @@ add image here
 	Go to CORS configuration 
 	See example below 
 	
-add image here 
+```
+<CORSConfiguration>
+ <CORSRule>
+   <AllowedOrigin>http://www.example.com</AllowedOrigin>
+   <AllowedMethod>PUT</AllowedMethod>
+   <AllowedMethod>POST</AllowedMethod>
+   <AllowedMethod>DELETE</AllowedMethod>
+   <AllowedHeader>*</AllowedHeader>
+  <MaxAgeSeconds>3000</MaxAgeSeconds>
+  <ExposeHeader>x-amz-server-side-encryption</ExposeHeader>
+  <ExposeHeader>x-amz-request-id</ExposeHeader>
+  <ExposeHeader>x-amz-id-2</ExposeHeader>
+ </CORSRule>
+</CORSConfiguration>
+```
 ### Setting up Identity and Access management (IAM)
   	Go to : https://us-east-2.console.aws.amazon.com/console/home?region=us-east-2
   	From top click on “Services”
