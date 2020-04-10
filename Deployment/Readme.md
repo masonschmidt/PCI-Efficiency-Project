@@ -63,7 +63,20 @@ The connection locations for input and output can be changed by editing
 	Go to “Bucket Policy”
 	Add bucket policy and save  – see example below 
 	
-add image here
+```
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {
+      "Sid":"PublicRead",
+      "Effect":"Allow",
+      "Principal": "*",
+      "Action":["s3:GetObject"],
+      "Resource":["arn:aws:s3:::examplebucket/*"]
+    }
+  ]
+}
+```
 
 	Go to CORS configuration 
 	See example below 
