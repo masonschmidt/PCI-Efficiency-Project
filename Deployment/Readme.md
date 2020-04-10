@@ -37,7 +37,7 @@ https://www.ics.uci.edu/~pattis/common/handouts/pythoneclipsejava/python.html
 Windows users can install dependencies using the install script located in
 "PCI-Efficiency-Project/Install Scripts/GeneratorDependencies.bat"  
 
-Windows users can also run the consumer using the start script located in
+Windows users can also run the simulator using the start script located in
 "PCI-Efficiency-Project/Start Scripts/start_generator.bat"  
 
 ### Linux or manual installation
@@ -150,3 +150,26 @@ The connection locations for input and output can be changed by editing
   	Click on Create user
 
 ## Deploying a React Front End
+
+### Windows
+Windows users can install dependencies using the install script located in
+"PCI-Efficiency-Project/Install Scripts/WebAppDependencies.bat"  
+
+Windows users can also run the front end using the start script located in
+"PCI-Efficiency-Project/Start Scripts/start_webapp.bat"  
+
+### Linux or manual installation
+
+Navigate to the webapp directory and run the following commands.
+```
+npm install
+npm install aws-sdk
+npm install @amcharts/amcharts4
+npm install react-select
+```
+
+You can then use the following command to start the front end.
+
+```
+npm start
+```
