@@ -269,8 +269,12 @@ class Chart extends Component {
   }
 
   render() {
+    let chartHeight = window.innerHeight/this.props.numRows;
+    let chartWidth = window.innerWidth/this.props.numColumns;
+    console.log('Rows: ' + this.props.numRows);
+    console.log('Columns: ' + this.props.numColumns);
     return (
-      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "365px" }}></div>
+      <div id={'chartdiv' + this.props.id} style={{ width: chartWidth, height: chartHeight, float: 'left'}}></div>
     );
   }
 }
