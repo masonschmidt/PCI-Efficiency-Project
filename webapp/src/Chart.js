@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import './Chart.css';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
-import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
 
@@ -53,7 +52,6 @@ async function s3Get(params, s3) {
   });
 }*/
 
-//am4core.useTheme(am4themes_dark);
 am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
