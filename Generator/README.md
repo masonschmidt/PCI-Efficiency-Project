@@ -1,7 +1,7 @@
 # Running Server
 ## Windows
 Head to https://nodejs.org/en/download/ and download and Install the Latest Long-Term Support (LTS) Node Js.  
-With Downloading Node, you should have also downloaded a support package with CLI called NPM.
+With Downloading Node, you should have also have downloaded a support package with CLI called NPM.
 Next, clone into the git repository via https://github.com/masonschmidt/PCI-Efficiency-Project.git  
 The repository should have the Dependencies installed already, however, if there are issue, ensure  
 Express, Connect-Timeout, and Seed Random are installed and saved using:
@@ -25,7 +25,7 @@ sudo apt-get install nodejs -y
 sudo apt-get install npm -y
 ```
 to download Node JS.
-With Downloading Node, you should have also downloaded a support package with CLI called NPM.
+With Downloading Node, you should have also have downloaded a support package with CLI called NPM.
 Next, clone into the git repository via https://github.com/masonschmidt/PCI-Efficiency-Project.git  
 The repository should have the Dependencies installed already, however, if there are issue, ensure  
 Express, Connect-Timeout, and Seed Random are installed and saved using:
