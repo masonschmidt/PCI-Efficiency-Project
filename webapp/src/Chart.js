@@ -210,7 +210,7 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create a horizontal scrollbar with previe and place it underneath the date axis
+    // Create a horizontal scrollbar with preview and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
@@ -255,8 +255,12 @@ class Chart extends Component {
   }
 
   render() {
+    let chartHeight = ((window.innerHeight-38)/this.props.numRows)-10;
+    let chartWidth = (window.innerWidth/this.props.numColumns)-10;
     return (
-      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "365px" }}></div>
+      <div id={'chartdiv' + this.props.id} style={{ width: chartWidth,
+        height: chartHeight, float: 'left', border: '1px solid black',
+        margin: '4px'}}></div>
     );
   }
 }
