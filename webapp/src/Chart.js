@@ -55,8 +55,8 @@ class Chart extends Component {
             ExpressionAttributeValues: {
                 ':generator': {'N': genNum},
                 ':recentTimeFuel': {'S': this.lastKey},
-                ':startDate': {'S': this.props.startDate},
-                ':endDate': {'S': this.props.endDate}
+                ':startDate': {'S': this.props.startDate.toISOString()},
+                ':endDate': {'S': this.props.endDate.toISOString()}
             },
             TableName: TABLE_NAME,
     };
@@ -119,8 +119,8 @@ class Chart extends Component {
       KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
             ExpressionAttributeValues: {
                 ':generator': {'N': genNum},
-                ':startDate': {'S': this.props.startDate},
-                ':endDate': {'S': this.props.endDate}
+                ':startDate': {'S': this.props.startDate.toISOString()},
+                ':endDate': {'S': this.props.endDate.toISOString()}
             },
             TableName: TABLE_NAME,
     };

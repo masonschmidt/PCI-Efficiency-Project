@@ -5,6 +5,8 @@ import Chart from './Chart.js'
 class Charts extends Component {
   renderChart(row, numRows, numColumns, numCharts) {
     let items = []
+    console.log("Start Date: " + this.props.startDate);
+    console.log("End Date: " + this.props.endDate);
     for(var j = 0; j < numColumns && (row-1)*numColumns + 1 + j <= numCharts; j++) {
       if(numCharts > 1) {
         console.log("id: " + this.props.generators[(row-1)*numColumns + j])
