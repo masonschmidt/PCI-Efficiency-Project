@@ -51,13 +51,16 @@ class Chart extends Component {
     let chartData = [];
 
     let tableParams = {
-      KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel',
+      KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel AND recentTimeFuel BETWEEN :startDate AND :endDate',
             ExpressionAttributeValues: {
                 ':generator': {'N': genNum},
-                ':recentTimeFuel': {'S': this.lastKey}
+                ':recentTimeFuel': {'S': this.lastKey},
+                ':startDate': {'S': this.props.startDate},
+                ':endDate': {'S': this.props.endDate}
             },
             TableName: TABLE_NAME,
     };
+
 
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
@@ -109,12 +112,17 @@ class Chart extends Component {
     //let data;
     let chartData = [];
 
+    console.log("Start Date: " + this.props.startDate);
+    console.log("End Date: " + this.props.endDate);
+
     let tableParams = {
-      KeyConditionExpression: 'generator = :generator',
-      ExpressionAttributeValues: {
-        ':generator': {'N': genNum}
-      },
-      TableName: TABLE_NAME
+      KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
+            ExpressionAttributeValues: {
+                ':generator': {'N': genNum},
+                ':startDate': {'S': this.props.startDate},
+                ':endDate': {'S': this.props.endDate}
+            },
+            TableName: TABLE_NAME,
     };
 
     let promise = dynamoQuery(tableParams, dynamodb);

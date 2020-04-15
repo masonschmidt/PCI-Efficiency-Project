@@ -14,6 +14,8 @@ class Charts extends Component {
             numRows={numRows}
             numColumns={numColumns}
             key={this.props.generators[(row-1)*numColumns + j]}
+            startDate={this.props.startDate}
+            endDate={this.props.endDate}
           />
         )
       }
@@ -24,6 +26,8 @@ class Charts extends Component {
             numRows={numRows}
             numColumns={numColumns}
             key={"0001"}
+            startDate={this.props.startDate}
+            endDate={this.props.endDate}
           />
         )
       }
