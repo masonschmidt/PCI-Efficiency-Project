@@ -6,28 +6,42 @@ import am4themes_dark from "@amcharts/amcharts4/themes/dark.js";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
 
-// const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
-// const BUCKET_SECRET_ACCESS_KEY = "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"
-const TABLE_ACCESS_KEY = "AKIARKHXIANXO77WR4X5"
-const TABLE_SECRET_ACCESS_KEY = "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"
+const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
+const BUCKET_SECRET_ACCESS_KEY = "ZeQH9lF5xjd3TkVLnRyVPZjyZ4HfjJh42N1Cor3f"
+
 // Configure aws with your accessKeyId and your secretAccessKey
 
 AWS.config.update({
   region: 'us-west-2', // Put your aws region here
-  dynamodb: '2012-08-10',
-  accessKeyId: TABLE_ACCESS_KEY,
-  secretAccessKey: TABLE_SECRET_ACCESS_KEY
+  accessKeyId: BUCKET_ACCESS_KEY,
+  secretAccessKey: BUCKET_SECRET_ACCESS_KEY
 })
 
-//const S3_BUCKET = 'pci-effciency-project-test';
-const TABLE_NAME = "efficiency"
+const S3_BUCKET = 'pci-effciency-project-test';
 
-async function dynamoQuery(params, dynamodb) {
+async function s3List(params, s3) {
   // Call S3 to obtain a list of the objects in the bucket
   return new Promise((resolve, reject) => {
-    dynamodb.query(params, (err, data) => {
+    s3.listObjectsV2(params, (err, data) => {
       if (err) {
-        console.log(err, err.stack);
+        console.log(err);
+      }
+      else {
+        if ( err ) reject(err)
+        else {
+          resolve(data);
+        }
+      }
+    });
+  });
+}
+
+async function s3Get(params, s3) {
+  // Call S3 to obtain a list of the objects in the bucket
+  return new Promise((resolve, reject) => {
+    s3.getObject(params, (err, data) => {
+      if (err) {
+        console.log(err);
       }
       else {
         if ( err ) reject(err)
@@ -44,40 +58,36 @@ am4core.useTheme(am4themes_animated);
 
 class Chart extends Component {
   async updateData() {
+    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
-    let dynamodb = new AWS.DynamoDB();
-    let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
+    let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
+
     let chartData = [];
 
-    let tableParams = {
-      KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel',
-            ExpressionAttributeValues: {
-                ':generator': {'N': genNum},
-                ':recentTimeFuel': {'S': this.lastKey}
-            },
-            TableName: TABLE_NAME,
+    let bucketParams = {
+      Bucket : S3_BUCKET,
+      Prefix : 'generator' + genNum,
+      StartAfter: this.lastKey,
     };
 
-    let promise = dynamoQuery(tableParams, dynamodb);
+    let promise = s3List(bucketParams, s3);
+
     let data = await promise;
 
-    for (let i = 0; i < data.Items.length; i++){
+    for (let i = 0; i < data.Contents.length; i++){
 
-      let point =  data.Items[i];
-      point.avgPower = parseFloat(point.avgPower.S);
-      point.startTimePower = point.startTimePower.S;
-      point.avgFuel = parseFloat(point.avgFuel.S);
-      point.efficiency = parseFloat(point.efficiency.S);
-      point.generator = point.generator.N.padStart(4, '0');
-      point.fuelTotal = parseFloat(point.fuelTotal.S);
-      point.recentTimePower = point.recentTimePower.S;
-      point.startTimeFuel = point.startTimeFuel.S;
-      point.recentTimeFuel = point.recentTimeFuel.S;
-      point.powerTotal = parseFloat(point.powerTotal.S);
+      let keyToGet = data.Contents[i].Key;
 
-      let keyToGet = data.Items[i].recentTimeFuel;
+      let params = {
+        Bucket: S3_BUCKET,
+        Key: keyToGet,
+      };
 
-      if(point.efficiency > 0.7)
+      let request = await s3Get(params, s3);
+
+      let point = JSON.parse(request.Body.toString('ascii'));
+
+      if(point['efficiency'] > 0.7)
       {
         const color = '#A9FE36';
         point['linecolor']  = color;
@@ -86,56 +96,53 @@ class Chart extends Component {
         const color = '#F74C15';
         point['linecolor'] = color;
       }
-      point['recentTimeFuel'] = keyToGet;
+      point['Key'] = keyToGet;
 
       chartData.push(point);
 
    }
-   if(chartData.length > 0) {
-     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
 
-     this.chart.addData(sortedData, sortedData.length - 1);
-     this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
-   }
+    let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
+
+    this.chart.addData(sortedData, sortedData.length - 1);
+
+    this.lastKey = sortedData[sortedData.length-1]['Key'];
 
   }
 
   async componentDidMount() {
 
-    let dynamodb = new AWS.DynamoDB();
-    let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
+    let s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+    let genNum = new Intl.NumberFormat('en-US', { minimumIntegerDigits: 4 , useGrouping: false}).format(this.props.id);
 
     //let data;
+
     let chartData = [];
 
-    let tableParams = {
-      KeyConditionExpression: 'generator = :generator',
-      ExpressionAttributeValues: {
-        ':generator': {'N': genNum}
-      },
-      TableName: TABLE_NAME
+    let bucketParams = {
+      Bucket : S3_BUCKET,
+      Prefix : 'generator' + genNum,
     };
 
-    let promise = dynamoQuery(tableParams, dynamodb);
+    let promise = s3List(bucketParams, s3);
+
     let data = await promise;
 
-    for (let i = 0; i < data.Items.length; i++){
+    for (let i = 0; i < data.Contents.length; i++){
 
-      let point = data.Items[i];
-      point.avgPower = parseFloat(point.avgPower.S);
-      point.startTimePower = point.startTimePower.S;
-      point.avgFuel = parseFloat(point.avgFuel.S);
-      point.efficiency = parseFloat(point.efficiency.S);
-      point.generator = point.generator.N.padStart(4, '0');
-      point.fuelTotal = parseFloat(point.fuelTotal.S);
-      point.recentTimePower = point.recentTimePower.S;
-      point.startTimeFuel = point.startTimeFuel.S;
-      point.recentTimeFuel = point.recentTimeFuel.S;
-      point.powerTotal = parseFloat(point.powerTotal.S);
+      let keyToGet = data.Contents[i].Key;
 
-      let keyToGet = data.Items[i].recentTimeFuel;
+      let params = {
+        Bucket: S3_BUCKET,
+        Key: keyToGet,
+      };
 
-      if(point.efficiency > 0.7)
+      let request = await s3Get(params, s3);
+
+      let point = JSON.parse(request.Body.toString('ascii'));
+
+      if(point['efficiency'] > 0.7)
       {
         const color = '#A9FE36';
         point['linecolor']  = color;
@@ -144,16 +151,18 @@ class Chart extends Component {
         const color = '#F74C15';
         point['linecolor'] = color;
       }
-      point['recentTimeFuel'] = keyToGet;
+      point['Key'] = keyToGet;
 
       chartData.push(point);
 
    }
 
-    let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
-    this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    let sortedData = chartData.sort((a,b) => new Date(a.recentTimePower) - new Date(b.recentTimePower));
+
+    this.lastKey = sortedData[sortedData.length-1]['Key'];
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
+
     chart.data = sortedData;
 
     // Set input format for the dates
@@ -178,7 +187,7 @@ class Chart extends Component {
     // Create series
     let series = chart.series.push(new am4charts.LineSeries());
     series.dataFields.valueY = "efficiency";
-    series.dataFields.dateX = "recentTimeFuel";
+    series.dataFields.dateX = "recentTimePower";
     series.tooltipText = "{efficiency}"
     series.strokeWidth = 2;
     series.minBulletDistance = 15;
@@ -210,7 +219,7 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create a horizontal scrollbar with preview and place it underneath the date axis
+    // Create a horizontal scrollbar with previe and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
@@ -255,12 +264,8 @@ class Chart extends Component {
   }
 
   render() {
-    let chartHeight = ((window.innerHeight-38)/this.props.numRows)-10;
-    let chartWidth = (window.innerWidth/this.props.numColumns)-10;
     return (
-      <div id={'chartdiv' + this.props.id} style={{ width: chartWidth,
-        height: chartHeight, float: 'left', border: '1px solid black',
-        margin: '4px'}}></div>
+      <div id={'chartdiv' + this.props.id} style={{ width: "100%", height: "365px" }}></div>
     );
   }
 }
