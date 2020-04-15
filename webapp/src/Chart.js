@@ -230,24 +230,6 @@ class Chart extends Component {
     }, 60000);
   }
 
-  componentDidUpdate(oldProps) {
-    /*
-    if (oldProps.data !== this.props.data) {
-      const point = this.props.data.slice(this.props.data.length-1)[0];
-      if(point['value'] > 20)
-      {
-        const color = '#A9FE36';
-        point['linecolor']  = color;
-      }
-      else {
-        const color = '#F74C15';
-        point['linecolor'] = color;
-      }
-      this.chart.addData(point, 1);
-    }
-    */
-  }
-
   componentWillUnmount() {
     clearInterval(this.interval);
     if (this.chart) {
@@ -256,7 +238,7 @@ class Chart extends Component {
   }
 
   render() {
-    let chartHeight = ((window.innerHeight-38)/this.props.numRows)-10;
+    let chartHeight = ((window.innerHeight-65)/this.props.numRows)-15;
     let chartWidth = (window.innerWidth/this.props.numColumns)-10;
     return (
       <div id={'chartdiv' + this.props.id} style={{ width: chartWidth,
