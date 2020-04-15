@@ -5,17 +5,14 @@ import Chart from './Chart.js'
 class Charts extends Component {
   renderChart(row, numRows, numColumns, numCharts) {
     let items = []
-    console.log("Start Date: " + this.props.startDate);
-    console.log("End Date: " + this.props.endDate);
     for(var j = 0; j < numColumns && (row-1)*numColumns + 1 + j <= numCharts; j++) {
       if(numCharts > 1) {
-        console.log("id: " + this.props.generators[(row-1)*numColumns + j])
         items.push(
           <Chart
-            id={this.props.generators[(row-1)*numColumns + j]}
+            id={this.props.generators[(row-1)*numColumns + j].value}
             numRows={numRows}
             numColumns={numColumns}
-            key={this.props.generators[(row-1)*numColumns + j]}
+            key={this.props.generators[(row-1)*numColumns + j].value}
             startDate={this.props.startDate}
             endDate={this.props.endDate}
           />
@@ -54,8 +51,6 @@ class Charts extends Component {
     if(numCharts > 0) {
       let numRows = Math.ceil(Math.sqrt(numCharts));
       let numColumns = Math.floor(Math.log2(numCharts+1));
-      console.log("numRows: " + numRows);
-      console.log("numColumns: " + numColumns);
       for(var i = 1; i <= numRows; i++){
         items.push(
           <div id={i} key={i} className='chartRow'>

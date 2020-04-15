@@ -112,9 +112,6 @@ class Chart extends Component {
     //let data;
     let chartData = [];
 
-    console.log("Start Date: " + this.props.startDate);
-    console.log("End Date: " + this.props.endDate);
-
     let tableParams = {
       KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
             ExpressionAttributeValues: {
@@ -128,39 +125,44 @@ class Chart extends Component {
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
 
-    for (let i = 0; i < data.Items.length; i++){
+    if(data.Items.length > 0) {
 
-      let point = data.Items[i];
-      point.avgPower = parseFloat(point.avgPower.S);
-      point.startTimePower = point.startTimePower.S;
-      point.avgFuel = parseFloat(point.avgFuel.S);
-      point.efficiency = parseFloat(point.efficiency.S);
-      point.generator = point.generator.N.padStart(4, '0');
-      point.fuelTotal = parseFloat(point.fuelTotal.S);
-      point.recentTimePower = point.recentTimePower.S;
-      point.startTimeFuel = point.startTimeFuel.S;
-      point.recentTimeFuel = point.recentTimeFuel.S;
-      point.powerTotal = parseFloat(point.powerTotal.S);
+      for (let i = 0; i < data.Items.length; i++){
 
-      let keyToGet = data.Items[i].recentTimeFuel;
+          let point = data.Items[i];
+          point.avgPower = parseFloat(point.avgPower.S);
+          point.startTimePower = point.startTimePower.S;
+          point.avgFuel = parseFloat(point.avgFuel.S);
+          point.efficiency = parseFloat(point.efficiency.S);
+          point.generator = point.generator.N.padStart(4, '0');
+          point.fuelTotal = parseFloat(point.fuelTotal.S);
+          point.recentTimePower = point.recentTimePower.S;
+          point.startTimeFuel = point.startTimeFuel.S;
+          point.recentTimeFuel = point.recentTimeFuel.S;
+          point.powerTotal = parseFloat(point.powerTotal.S);
 
-      if(point.efficiency > 0.7)
-      {
-        const color = '#A9FE36';
-        point['linecolor']  = color;
-      }
-      else {
-        const color = '#F74C15';
-        point['linecolor'] = color;
-      }
-      point['recentTimeFuel'] = keyToGet;
+          let keyToGet = data.Items[i].recentTimeFuel;
 
-      chartData.push(point);
+          if(point.efficiency > 0.7)
+          {
+            const color = '#A9FE36';
+            point['linecolor']  = color;
+          }
+          else {
+            const color = '#F74C15';
+            point['linecolor'] = color;
+          }
+          point['recentTimeFuel'] = keyToGet;
 
-   }
+          chartData.push(point);
+
+       }
+    }
 
     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
-    this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    if(data.length > 0) {
+      this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    }
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
     chart.data = sortedData;

@@ -108,7 +108,6 @@ class App extends Component {
   }
 
   renderCharts() {
-    console.log("StartDate: " + this.state.startDate)
     return (
       <Charts
         generators={this.state.generators}
