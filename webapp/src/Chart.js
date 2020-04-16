@@ -50,12 +50,15 @@ class Chart extends Component {
     let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
     let chartData = [];
     let tableParams;
+    console.log("Last Key: " + this.lastKey);
+    console.log("startDate: " + this.props.startDate);
+    console.log("endDate: " + this.props.endDate);
     if(this.lastKey !== '') {
+      console.log("Last key not blank");
       tableParams = {
-        KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel AND recentTimeFuel BETWEEN :startDate AND :endDate',
+        KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
               ExpressionAttributeValues: {
                   ':generator': {'N': genNum},
-                  ':recentTimeFuel': {'S': this.lastKey},
                   ':startDate': {'S': this.props.startDate.toISOString()},
                   ':endDate': {'S': this.props.endDate.toISOString()}
               },
@@ -63,6 +66,7 @@ class Chart extends Component {
       };
     }
     else {
+      console.log("Last key blank");
       tableParams = {
         KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
               ExpressionAttributeValues: {
@@ -74,7 +78,7 @@ class Chart extends Component {
       };
     }
 
-
+    console.log("tableParams: " + tableParams);
 
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
@@ -136,6 +140,8 @@ class Chart extends Component {
             TableName: TABLE_NAME,
     };
 
+    console.log("tableParams: " + tableParams);
+
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
 
@@ -174,7 +180,7 @@ class Chart extends Component {
     }
 
     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
-    if(data.length > 0) {
+    if(data.Items.length > 0) {
       this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
     }
     else {
@@ -274,8 +280,8 @@ class Chart extends Component {
     else if(this.props.numRows < 3 && (this.chart != null)) {
       this.chart.scrollbarX.disabled = false;
     }
-    let chartHeight = ((window.innerHeight-65)/this.props.numRows)-15;
-    let chartWidth = (window.innerWidth/this.props.numColumns)-10;
+    let chartHeight = ((window.innerHeight-80)/this.props.numRows)-15;
+    let chartWidth = ((window.innerWidth-5)/this.props.numColumns)-10;
     return (
       <div id={'chartdiv' + this.props.id} style={{ width: chartWidth,
         height: chartHeight, float: 'left', border: '1px solid black',

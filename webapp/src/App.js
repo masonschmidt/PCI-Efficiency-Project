@@ -47,12 +47,16 @@ class App extends Component {
     };
   }
 
-  handleDropDownChange = generators =>
+  handleDropDownChange = generators => {
+    if(!Array.isArray(generators)) {
+      generators = [generators]
+    }
     this.setState({
       startDate: this.state.startDate,
       endDate: this.state.endDate,
       generators
     });
+  }
 
   handleStartChange = startDate =>
     this.setState({

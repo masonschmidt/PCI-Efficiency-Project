@@ -6,30 +6,16 @@ class Charts extends Component {
   renderChart(row, numRows, numColumns, numCharts) {
     let items = []
     for(var j = 0; j < numColumns && (row-1)*numColumns + 1 + j <= numCharts; j++) {
-      if(numCharts > 1) {
-        items.push(
-          <Chart
-            id={this.props.generators[(row-1)*numColumns + j].value}
-            numRows={numRows}
-            numColumns={numColumns}
-            key={this.props.generators[(row-1)*numColumns + j].value}
-            startDate={this.props.startDate}
-            endDate={this.props.endDate}
-          />
-        )
-      }
-      else {
-        items.push(
-          <Chart
-            id={"0001"}
-            numRows={numRows}
-            numColumns={numColumns}
-            key={"0001"}
-            startDate={this.props.startDate}
-            endDate={this.props.endDate}
-          />
-        )
-      }
+      items.push(
+        <Chart
+          id={this.props.generators[(row-1)*numColumns + j].value}
+          numRows={numRows}
+          numColumns={numColumns}
+          key={this.props.generators[(row-1)*numColumns + j].value}
+          startDate={this.props.startDate}
+          endDate={this.props.endDate}
+        />
+      )
     }
     return items;
   }
