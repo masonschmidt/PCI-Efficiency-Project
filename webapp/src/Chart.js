@@ -221,10 +221,13 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create a horizontal scrollbar with preview and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
+    if(this.props.numRows >= 3) {
+      // Create a horizontal scrollbar with preview and place it underneath the date axis
+      chart.scrollbarX.disabled = true;
+    }
 
     valueAxis.min = 0.0;
     valueAxis.max = 1.0;
@@ -248,6 +251,12 @@ class Chart extends Component {
   }
 
   render() {
+    if(this.props.numRows >= 3 && (this.chart != null)) {
+      this.chart.scrollbarX.disabled = true;
+    }
+    else if(this.props.numRows < 3 && (this.chart != null)) {
+      this.chart.scrollbarX.disabled = false;
+    }
     let chartHeight = ((window.innerHeight-65)/this.props.numRows)-15;
     let chartWidth = (window.innerWidth/this.props.numColumns)-10;
     return (
