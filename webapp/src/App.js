@@ -98,7 +98,6 @@ class App extends Component {
                 value={this.state.endDate}
                 onChange={this.handleEndChange}
                 minDate={this.state.startDate}
-                maxDate={new Date()}
               />
             </td>
           </tr>
