@@ -1,3 +1,3 @@
 cd ..\
 CALL venv\Scripts\activate.bat
-python Consumer\asyncRequests.py
+python Consumer\dynamo.py

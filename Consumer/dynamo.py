@@ -165,12 +165,11 @@ if AWS_ON or AWS_EFF_ON:
         aws_access_key_id=TABLE_ACCESS_KEY,
         aws_secret_access_key=TABLE_SECRET_ACCESS_KEY,
     )
+    table_effciency = dynamodb.Table('efficiency')
+    table_power = dynamodb.Table('power')
+    table_fuel = dynamodb.Table('fuel')
 else:
     dynamodb = ''
-
-table_effciency = dynamodb.Table('efficiency')
-table_power = dynamodb.Table('power')
-table_fuel = dynamodb.Table('fuel')
 
 #Create the coroutines to be run and add them to a list
 coroutines = []

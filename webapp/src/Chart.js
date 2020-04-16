@@ -49,17 +49,31 @@ class Chart extends Component {
     let dynamodb = new AWS.DynamoDB();
     let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
     let chartData = [];
+    let tableParams;
+    if(this.lastKey !== '') {
+      tableParams = {
+        KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel AND recentTimeFuel BETWEEN :startDate AND :endDate',
+              ExpressionAttributeValues: {
+                  ':generator': {'N': genNum},
+                  ':recentTimeFuel': {'S': this.lastKey},
+                  ':startDate': {'S': this.props.startDate.toISOString()},
+                  ':endDate': {'S': this.props.endDate.toISOString()}
+              },
+              TableName: TABLE_NAME,
+      };
+    }
+    else {
+      tableParams = {
+        KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
+              ExpressionAttributeValues: {
+                  ':generator': {'N': genNum},
+                  ':startDate': {'S': this.props.startDate.toISOString()},
+                  ':endDate': {'S': this.props.endDate.toISOString()}
+              },
+              TableName: TABLE_NAME,
+      };
+    }
 
-    let tableParams = {
-      KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel AND recentTimeFuel BETWEEN :startDate AND :endDate',
-            ExpressionAttributeValues: {
-                ':generator': {'N': genNum},
-                ':recentTimeFuel': {'S': this.lastKey},
-                ':startDate': {'S': this.props.startDate.toISOString()},
-                ':endDate': {'S': this.props.endDate.toISOString()}
-            },
-            TableName: TABLE_NAME,
-    };
 
 
     let promise = dynamoQuery(tableParams, dynamodb);
@@ -162,6 +176,9 @@ class Chart extends Component {
     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
     if(data.length > 0) {
       this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    }
+    else {
+      this.lastKey = '';
     }
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
