@@ -49,15 +49,36 @@ class Chart extends Component {
     let dynamodb = new AWS.DynamoDB();
     let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
     let chartData = [];
+    let tableParams;
+    console.log("Last Key: " + this.lastKey);
+    console.log("startDate: " + this.props.startDate);
+    console.log("endDate: " + this.props.endDate);
+    if(this.lastKey !== '') {
+      console.log("Last key not blank");
+      tableParams = {
+        KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
+              ExpressionAttributeValues: {
+                  ':generator': {'N': genNum},
+                  ':startDate': {'S': this.props.startDate.toISOString()},
+                  ':endDate': {'S': this.props.endDate.toISOString()}
+              },
+              TableName: TABLE_NAME,
+      };
+    }
+    else {
+      console.log("Last key blank");
+      tableParams = {
+        KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
+              ExpressionAttributeValues: {
+                  ':generator': {'N': genNum},
+                  ':startDate': {'S': this.props.startDate.toISOString()},
+                  ':endDate': {'S': this.props.endDate.toISOString()}
+              },
+              TableName: TABLE_NAME,
+      };
+    }
 
-    let tableParams = {
-      KeyConditionExpression: 'generator = :generator AND recentTimeFuel > :recentTimeFuel',
-            ExpressionAttributeValues: {
-                ':generator': {'N': genNum},
-                ':recentTimeFuel': {'S': this.lastKey}
-            },
-            TableName: TABLE_NAME,
-    };
+    console.log("tableParams: " + tableParams);
 
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
@@ -110,49 +131,61 @@ class Chart extends Component {
     let chartData = [];
 
     let tableParams = {
-      KeyConditionExpression: 'generator = :generator',
-      ExpressionAttributeValues: {
-        ':generator': {'N': genNum}
-      },
-      TableName: TABLE_NAME
+      KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
+            ExpressionAttributeValues: {
+                ':generator': {'N': genNum},
+                ':startDate': {'S': this.props.startDate.toISOString()},
+                ':endDate': {'S': this.props.endDate.toISOString()}
+            },
+            TableName: TABLE_NAME,
     };
+
+    console.log("tableParams: " + tableParams);
 
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
 
-    for (let i = 0; i < data.Items.length; i++){
+    if(data.Items.length > 0) {
 
-      let point = data.Items[i];
-      point.avgPower = parseFloat(point.avgPower.S);
-      point.startTimePower = point.startTimePower.S;
-      point.avgFuel = parseFloat(point.avgFuel.S);
-      point.efficiency = parseFloat(point.efficiency.S);
-      point.generator = point.generator.N.padStart(4, '0');
-      point.fuelTotal = parseFloat(point.fuelTotal.S);
-      point.recentTimePower = point.recentTimePower.S;
-      point.startTimeFuel = point.startTimeFuel.S;
-      point.recentTimeFuel = point.recentTimeFuel.S;
-      point.powerTotal = parseFloat(point.powerTotal.S);
+      for (let i = 0; i < data.Items.length; i++){
 
-      let keyToGet = data.Items[i].recentTimeFuel;
+          let point = data.Items[i];
+          point.avgPower = parseFloat(point.avgPower.S);
+          point.startTimePower = point.startTimePower.S;
+          point.avgFuel = parseFloat(point.avgFuel.S);
+          point.efficiency = parseFloat(point.efficiency.S);
+          point.generator = point.generator.N.padStart(4, '0');
+          point.fuelTotal = parseFloat(point.fuelTotal.S);
+          point.recentTimePower = point.recentTimePower.S;
+          point.startTimeFuel = point.startTimeFuel.S;
+          point.recentTimeFuel = point.recentTimeFuel.S;
+          point.powerTotal = parseFloat(point.powerTotal.S);
 
-      if(point.efficiency > 0.7)
-      {
-        const color = '#A9FE36';
-        point['linecolor']  = color;
-      }
-      else {
-        const color = '#F74C15';
-        point['linecolor'] = color;
-      }
-      point['recentTimeFuel'] = keyToGet;
+          let keyToGet = data.Items[i].recentTimeFuel;
 
-      chartData.push(point);
+          if(point.efficiency > 0.7)
+          {
+            const color = '#A9FE36';
+            point['linecolor']  = color;
+          }
+          else {
+            const color = '#F74C15';
+            point['linecolor'] = color;
+          }
+          point['recentTimeFuel'] = keyToGet;
 
-   }
+          chartData.push(point);
+
+       }
+    }
 
     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
-    this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    if(data.Items.length > 0) {
+      this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
+    }
+    else {
+      this.lastKey = '';
+    }
 
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
     chart.data = sortedData;
@@ -211,10 +244,13 @@ class Chart extends Component {
     chart.cursor.xAxis = dateAxis;
     chart.cursor.snapToSeries = series;
 
-    // Create a horizontal scrollbar with preview and place it underneath the date axis
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
+    if(this.props.numRows >= 3) {
+      // Create a horizontal scrollbar with preview and place it underneath the date axis
+      chart.scrollbarX.disabled = true;
+    }
 
     valueAxis.min = 0.0;
     valueAxis.max = 1.0;
@@ -238,8 +274,14 @@ class Chart extends Component {
   }
 
   render() {
-    let chartHeight = ((window.innerHeight-65)/this.props.numRows)-15;
-    let chartWidth = (window.innerWidth/this.props.numColumns)-10;
+    if(this.props.numRows >= 3 && (this.chart != null)) {
+      this.chart.scrollbarX.disabled = true;
+    }
+    else if(this.props.numRows < 3 && (this.chart != null)) {
+      this.chart.scrollbarX.disabled = false;
+    }
+    let chartHeight = ((window.innerHeight-80)/this.props.numRows)-15;
+    let chartWidth = ((window.innerWidth-5)/this.props.numColumns)-10;
     return (
       <div id={'chartdiv' + this.props.id} style={{ width: chartWidth,
         height: chartHeight, float: 'left', border: '1px solid black',

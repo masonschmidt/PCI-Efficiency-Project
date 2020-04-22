@@ -12,8 +12,6 @@ from botocore.client import Config
 POWER_BUCKET = "power-bucket-test"
 FUEL_BUCKET = "fuel-bucket-test"
 EFFICIENCY_BUCKET = "pci-effciency-project-test"
-BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
-BUCKET_SECRET_ACCESS_KEY = "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"
 EFFICIENCY_CONSTANT = 0.29329722222222
 BASE_URL = 'http://127.0.0.1:3001'
 
@@ -148,8 +146,6 @@ if __name__ == '__main__':
 
     if AWS_ON or AWS_EFF_ON:
         s3 = boto3.resource( 's3',
-            aws_access_key_id=BUCKET_ACCESS_KEY,
-            aws_secret_access_key=BUCKET_SECRET_ACCESS_KEY,
             config=Config(signature_version='s3v4')
         )
     else:

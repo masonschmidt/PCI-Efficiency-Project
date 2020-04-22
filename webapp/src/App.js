@@ -29,7 +29,7 @@ class App extends Component {
       }
     }
     this.selects = parsed.gen;
-    
+
 
     for(let i = 1; i <= 3000; i++){
       let str = i.toString();
@@ -47,12 +47,16 @@ class App extends Component {
     };
   }
 
-  handleDropDownChange = generators => 
-    this.setState({ 
-      startDate: this.state.startDate, 
-      endDate: this.state.endDate, 
-      generators 
+  handleDropDownChange = generators => {
+    if(!Array.isArray(generators)) {
+      generators = [generators]
+    }
+    this.setState({
+      startDate: this.state.startDate,
+      endDate: this.state.endDate,
+      generators
     });
+  }
 
   handleStartChange = startDate =>
     this.setState({
@@ -98,7 +102,6 @@ class App extends Component {
                 value={this.state.endDate}
                 onChange={this.handleEndChange}
                 minDate={this.state.startDate}
-                maxDate={new Date()}
               />
             </td>
           </tr>
@@ -111,6 +114,8 @@ class App extends Component {
     return (
       <Charts
         generators={this.state.generators}
+        startDate={this.state.startDate}
+        endDate={this.state.endDate}
       />
     );
   }
