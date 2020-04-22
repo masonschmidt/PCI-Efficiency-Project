@@ -12,8 +12,6 @@ from botocore.client import Config
 
 #Constansts for use later.
 TABLE_NAME = "efficiency"
-TABLE_ACCESS_KEY = "AKIARKHXIANXO77WR4X5"
-TABLE_SECRET_ACCESS_KEY = "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"
 EFFICIENCY_CONSTANT = 0.29329722222222
 BASE_URL = 'http://127.0.0.1:3001'
 
@@ -160,11 +158,7 @@ loop = asyncio.ProactorEventLoop()
 asyncio.set_event_loop(loop)
 
 if AWS_ON or AWS_EFF_ON:
-    dynamodb = boto3.resource( 'dynamodb',
-        region_name='us-west-2',
-        aws_access_key_id=TABLE_ACCESS_KEY,
-        aws_secret_access_key=TABLE_SECRET_ACCESS_KEY,
-    )
+    dynamodb = boto3.resource( 'dynamodb')
     table_effciency = dynamodb.Table('efficiency')
     table_power = dynamodb.Table('power')
     table_fuel = dynamodb.Table('fuel')
