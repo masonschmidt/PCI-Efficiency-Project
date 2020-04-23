@@ -5,8 +5,8 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
 
-const TABLE_ACCESS_KEY = "AKIARKHXIANXO77WR4X5"
-const TABLE_SECRET_ACCESS_KEY = "W42ZM2Q7JvLRWOOcQw4QSzUe5zbNPWauiTOFFhjL"
+const TABLE_ACCESS_KEY = ""
+const TABLE_SECRET_ACCESS_KEY = ""
 // Configure aws with your accessKeyId and your secretAccessKey
 
 AWS.config.update({
