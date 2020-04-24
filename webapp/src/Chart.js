@@ -5,10 +5,8 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import AWS from "aws-sdk";
 
-// const BUCKET_ACCESS_KEY = "AKIARKHXIANXJPYDG6NV"
-// const BUCKET_SECRET_ACCESS_KEY = "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"
-const TABLE_ACCESS_KEY = "AKIARKHXIANXO77WR4X5"
-const TABLE_SECRET_ACCESS_KEY = "W42ZM2Q7JvLRWOOcQw4QSzUe5zbNPWauiTOFFhjL"
+const TABLE_ACCESS_KEY = ""
+const TABLE_SECRET_ACCESS_KEY = ""
 // Configure aws with your accessKeyId and your secretAccessKey
 
 AWS.config.update({
@@ -21,6 +19,8 @@ AWS.config.update({
 //const S3_BUCKET = 'pci-effciency-project-test';
 const TABLE_NAME = "efficiency"
 
+//A query to dynamo using the given list of parameters and a dynamodb object.
+//This function can be awaited correctly and returns the query results.
 async function dynamoQuery(params, dynamodb) {
   // Call S3 to obtain a list of the objects in the bucket
   return new Promise((resolve, reject) => {
@@ -38,23 +38,39 @@ async function dynamoQuery(params, dynamodb) {
   });
 }
 
-
-//am4core.useTheme(am4themes_dark);
-
+//Theme for the graphs
 am4core.useTheme(am4themes_animated);
 
+//A custom react component that includes a chart connected to AWS
+//The chart queries DynamoDB using the following props
+// id -> the id of the generator to display
+// startDate -> the start of the date range to display
+// endDate -> the end of the date range to display
+// numRows -> the number of rows in the graph grid (used to calculate size)
+// numCols -> the number of columns in the graph grid (used to calculate size)
+//The local attributes of the Chart are the following
+// lastKey -> the dynamo key for the last received data point (used to retrieve new data)
+// chart -> the amcharts chart
+// interval -> a function run on a timer, in this case data update every minute
 class Chart extends Component {
+
+  //Updates the chart with new data from AWS
   async updateData() {
 
+    //Create a new dynamo object
     let dynamodb = new AWS.DynamoDB();
+    //Get the passed generator number and format it it
     let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
+    //Empty list to store data
     let chartData = [];
+    //Query parameters for AWS
     let tableParams;
-    console.log("Last Key: " + this.lastKey);
-    console.log("startDate: " + this.props.startDate);
-    console.log("endDate: " + this.props.endDate);
+
+    //Create the parameters for the query
+    //This currently relies on AWS comparison of dates (I believe it is using string comparison)
+    //TODO create more filters to only retrieve new data using the lastKey as
+    // KeyConditionExpression does not allow more conditions
     if(this.lastKey !== '') {
-      console.log("Last key not blank");
       tableParams = {
         KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
               ExpressionAttributeValues: {
@@ -66,7 +82,6 @@ class Chart extends Component {
       };
     }
     else {
-      console.log("Last key blank");
       tableParams = {
         KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
               ExpressionAttributeValues: {
@@ -78,11 +93,11 @@ class Chart extends Component {
       };
     }
 
-    console.log("tableParams: " + tableParams);
-
+    //Call and await the query
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
 
+    //Process the retrieved data
     for (let i = 0; i < data.Items.length; i++){
 
       let point =  data.Items[i];
@@ -99,6 +114,7 @@ class Chart extends Component {
 
       let keyToGet = data.Items[i].recentTimeFuel;
 
+      //Add an new attribute to color the graph
       if(point.efficiency > 0.7)
       {
         const color = '#A9FE36';
@@ -113,6 +129,7 @@ class Chart extends Component {
       chartData.push(point);
 
    }
+   //If data was retrieved then sort it and add it to the chart
    if(chartData.length > 0) {
      let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
 
@@ -122,14 +139,19 @@ class Chart extends Component {
 
   }
 
+  //Create the initial chart when the component mounts
   async componentDidMount() {
 
+    //Create the new dynamo object
     let dynamodb = new AWS.DynamoDB();
+    //Create the generator number formatted
     let genNum = new Intl.NumberFormat('en-US').format(this.props.id);
 
-    //let data;
+    //empty list to store chart data
     let chartData = [];
 
+    //Create the parameters for the query
+    //This currently relies on AWS comparison of dates (I believe it is using string comparison)
     let tableParams = {
       KeyConditionExpression: 'generator = :generator AND recentTimeFuel BETWEEN :startDate AND :endDate',
             ExpressionAttributeValues: {
@@ -140,11 +162,11 @@ class Chart extends Component {
             TableName: TABLE_NAME,
     };
 
-    console.log("tableParams: " + tableParams);
-
+    //Query AWS and await it
     let promise = dynamoQuery(tableParams, dynamodb);
     let data = await promise;
 
+    //Process any retrieved data
     if(data.Items.length > 0) {
 
       for (let i = 0; i < data.Items.length; i++){
@@ -163,6 +185,7 @@ class Chart extends Component {
 
           let keyToGet = data.Items[i].recentTimeFuel;
 
+          //Add an attribute to color the graph
           if(point.efficiency > 0.7)
           {
             const color = '#A9FE36';
@@ -179,7 +202,9 @@ class Chart extends Component {
        }
     }
 
+    //Sort the retrieved data
     let sortedData = chartData.sort((a,b) => new Date(a.recentTimeFuel) - new Date(b.recentTimeFuel));
+    //Set the last key if data was retrieved
     if(data.Items.length > 0) {
       this.lastKey = sortedData[sortedData.length-1]['recentTimeFuel'];
     }
@@ -187,7 +212,9 @@ class Chart extends Component {
       this.lastKey = '';
     }
 
+    //Create the chart
     let chart = am4core.create('chartdiv' + this.props.id, am4charts.XYChart);
+    //Set the chart data
     chart.data = sortedData;
 
     // Set input format for the dates
@@ -196,6 +223,7 @@ class Chart extends Component {
     // Create axes
     let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 
+    //Set the x axis scale
     dateAxis.baseInterval = {
       "timeUnit": "minute",
       "count": 1
@@ -204,6 +232,7 @@ class Chart extends Component {
 
     let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
+    //Create title
     let title = chart.titles.create();
     title.text = "Generator: " + this.props.id;
     title.fontSize = 25;
@@ -225,6 +254,7 @@ class Chart extends Component {
     series.tooltip.label.minHeight = 40;
     series.tooltip.label.textAlign = "middle";
     series.tooltip.label.textValign = "middle";
+    //Bind the colored graph areas
     series.fillOpacity = 0.4;
     series.propertyFields.stroke = "linecolor";
     series.propertyFields.fill = "linecolor";
@@ -247,6 +277,7 @@ class Chart extends Component {
     chart.scrollbarX = new am4charts.XYChartScrollbar();
     chart.scrollbarX.series.push(series);
     chart.scrollbarX.parent = chart.bottomAxesContainer;
+    //If there are too many charts then hide the scrollbar to save space
     if(this.props.numRows >= 3) {
       // Create a horizontal scrollbar with preview and place it underneath the date axis
       chart.scrollbarX.disabled = true;
@@ -259,27 +290,34 @@ class Chart extends Component {
     dateAxis.start = 0.50;
     dateAxis.keepSelection = true;
 
+    //Add the chart as a component attribute
     this.chart = chart;
 
+    //Add the interval for data updates
     const interval = setInterval(() => {
       this.updateData();
     }, 60000);
   }
 
   componentWillUnmount() {
+    //Clear the interval when the chart is unmounted
     clearInterval(this.interval);
     if (this.chart) {
       this.chart.dispose();
     }
   }
 
+  //Render the chart
   render() {
+    //Calculate if the scrollbar should be disabled or enabled
     if(this.props.numRows >= 3 && (this.chart != null)) {
       this.chart.scrollbarX.disabled = true;
     }
     else if(this.props.numRows < 3 && (this.chart != null)) {
       this.chart.scrollbarX.disabled = false;
     }
+
+    //Calculate the chart's size based on the number of columns and rows
     let chartHeight = ((window.innerHeight-80)/this.props.numRows)-15;
     let chartWidth = ((window.innerWidth-5)/this.props.numColumns)-10;
     return (
